@@ -420,8 +420,9 @@ body.tvopen #card,body.tvopen #pods,body.tvopen .hdr{visibility:hidden}
  /* кнопки действий — как главное действие: ярче, с пиксельной рамкой и чуть приподняты */
  #card .acts .btn,#card .va .btn,#card .acts .mk,.pod.mh .mhgo,.pod.mh .mhc,.pod.mh .mhl{transition:transform .18s ease,box-shadow .18s ease,background .18s ease,color .18s ease,filter .18s ease}
  body.hv-card #card .acts .btn:not(.off),body.hv-card #card .var.open .va .btn,body.hv-card #card .vt:hover .va .btn,body.hv #pods>.pod.mh.hov .mhgo{transform:translate(-2px,-2px);box-shadow:0 0 0 2px #000,0 0 0 4px var(--g),6px 6px 0 #1d1f12,0 0 24px 2px rgba(172,185,72,.45);filter:brightness(1.12)}
- body.hv-card #card .acts .btn.ghost,body.hv-card #card .var.open .va .btn.ghost,body.hv-card #card .vt:hover .va .btn.ghost,body.hv #pods>.pod.mh.hov .mhc{background:var(--g);color:#000;border-color:var(--g)}
- body.hv #pods>.pod.mh.hov .mhc{box-shadow:0 0 0 2px #000,0 0 0 3px var(--g),0 0 18px 0 rgba(172,185,72,.35)}
+ body.hv-card #card .acts .btn.ghost,body.hv-card #card .var.open .va .btn.ghost,body.hv-card #card .vt:hover .va .btn.ghost{background:var(--g);color:#000;border-color:var(--g)}
+ body.hv #pods>.pod.mh .mhc:hover,body.hv #pods>.pod.mh .mhc:focus-visible{background:var(--g);color:#000;border-color:var(--g)}
+ body.hv #pods>.pod.mh .mhc:hover,body.hv #pods>.pod.mh .mhc:focus-visible{transform:translate(-2px,-2px);box-shadow:0 0 0 2px #000,0 0 0 3px var(--g),0 0 18px 0 rgba(172,185,72,.35)}
  body.hv #pods>.pod.mh.hov .mhl{color:var(--g)}
  /* центр в покое: светится шаг маршрута этого блока, остальное в центре гаснет */
  .idle>.term,.idle>h3,.idle>.hint,.idle .route li{transition:opacity .2s ease}
