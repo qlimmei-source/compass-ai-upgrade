@@ -322,13 +322,13 @@ button.mht{display:block;text-align:left;cursor:pointer;transition:filter .15s}b
 .vt .vh small{display:block;margin-bottom:1px;font:500 12px/15px var(--fm);letter-spacing:0;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .vt .vh:hover span{color:var(--g)}
 .vt .vw{position:relative;margin-top:7px;flex:1;min-height:0}
-.vt .vs{height:72px;overflow-y:scroll;overscroll-behavior:contain;padding:1px 10px 26px 0;scrollbar-width:auto;scrollbar-color:var(--g) #1d1f12;font:500 13.5px/19px var(--fd);color:var(--iv)}
+.vt .vs{min-height:57px;overflow:visible;overscroll-behavior:contain;padding:1px 10px 26px 0;scrollbar-width:auto;scrollbar-color:var(--g) #1d1f12;font:500 13.5px/19px var(--fd);color:var(--iv)}
 .vt .vs::-webkit-scrollbar{width:9px}.vt .vs::-webkit-scrollbar-track{background:#1d1f12}.vt .vs::-webkit-scrollbar-thumb{background:var(--g)}
 .vt .vs p{margin:0}
 .vt .vs h4{margin-top:7px;font:700 11.5px var(--fm);letter-spacing:.14em;color:var(--g);text-transform:uppercase}
 .vt .vs ul,.vt .vs ol{margin:2px 0 0 17px}
 .vt .vs li{margin-top:1px}
-.vt .vw::after{content:"";position:absolute;left:0;right:12px;bottom:0;height:34px;background:linear-gradient(to bottom,rgba(6,6,4,0),#060604 85%);pointer-events:none;transition:opacity .2s}
+.vt .vw::after{display:none;content:"";position:absolute;left:0;right:12px;bottom:0;height:34px;background:linear-gradient(to bottom,rgba(6,6,4,0),#060604 85%);pointer-events:none;transition:opacity .2s}
 .vt .vhint{position:absolute;right:16px;bottom:1px;z-index:1;font:700 12px var(--fm);letter-spacing:.12em;text-transform:uppercase;color:#000;background:var(--g);padding:1px 6px;pointer-events:none;transition:opacity .2s}
 .vt .vw.end::after,.vt .vw.end .vhint{opacity:0}
 .vt .va{display:flex;gap:6px;margin-top:8px;align-items:center}
@@ -715,9 +715,9 @@ body.hv .nb{opacity:.45}
 .mm-how b{display:block;font:600 12px var(--fm);letter-spacing:.2em;color:var(--g);text-transform:uppercase;margin-bottom:3px}
 .mm-lb{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.92);display:none;align-items:center;justify-content:center;padding:24px}
 .mm-lb.open{display:flex}
-.mm-box{position:relative;width:min(1100px,100%,calc((100vh - 250px) * 4 / 3 + 40px));min-width:min(560px,100%);background:var(--g);padding:2px;
+.mm-box{position:relative;width:min(1100px,100%,calc((100vh - 330px) * 4 / 3 + 40px));min-width:min(560px,100%);background:var(--g);padding:2px;
   clip-path:polygon(22px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%,0 22px)}
-.mm-box .mm-in{padding:16px 20px 18px;max-height:calc(100vh - 52px);overflow:auto}
+.mm-box .mm-in{padding:16px 20px 18px;max-height:calc(100vh - 52px);overflow:hidden}
 .mm-box .mm-ttl{font-size:28px}
 .mm-box .mm-how{font-size:19px}
 .mm-x{margin-left:auto;font:700 13px var(--fm);letter-spacing:.16em;border:2px solid var(--iv);color:var(--iv);padding:5px 10px;white-space:nowrap}
@@ -1102,7 +1102,7 @@ function shotHTML(m){const hl=(m.hl||[]).map(h=>`<i class="hl ${m.kind==='toggle
  const c=m.click||[50,50];const st=`--mx:${c[0]}%;--my:${c[1]}%;--mx0:${Math.max(4,c[0]-40)}%;--my0:${Math.min(90,c[1]+30)}%`;
  return `<figure class="shot anim${m.src2?'':' one'}" style="${st}"><div style="position:relative"><img src="${esc(m.src)}" alt="${esc(m.alt||'')}">${m.src2?`<img class="s2" src="${esc(m.src2)}" alt="">`:''}${hl}${MS_SVG}</div>${m.caption?`<figcaption>${esc(m.caption)}</figcaption>`:''}</figure>`}
 function varsHTML(vs){if(vs.length&&vs.every(v=>v.hook))return `<div class="vars vtg">${vs.map(v=>`<div class="vt" data-k="${esc(v.k)}"><button class="vh" data-act="tv" data-k="${esc(v.k)}" title="Открыть вариант ${esc(v.k)} на весь экран"><b>${esc(v.k)}</b><span><small>${esc(v.dept)} · ${esc(v.hours)} работы</small>${esc(v.title)}</span></button>`+
-  `<div class="vw"><div class="vs" tabindex="0" aria-label="Вариант ${esc(v.k)}: подробности, листайте вниз"><p class="hook">${esc(v.hook)}</p><h4>Что получится</h4>${(v.get||[]).length?`<ul>${v.get.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:`<p>${esc(v.result)}</p>`}${(v.path||[]).length?`<h4>Как пойдёт</h4><ol>${v.path.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}</div><span class="vhint" aria-hidden="true">листайте ↓</span></div>`+
+  `<div class="vw"><p class="vs hook">${esc(v.hook)}</p></div>`+
   `<div class="va"><button class="btn" data-act="tv" data-k="${esc(v.k)}">Открыть →</button><button class="btn ghost" data-act="tdl" data-k="${esc(v.k)}">Скачать ↓</button><button class="btn ghost" data-act="tcopy" data-k="${esc(v.k)}" title="Скопировать промпт для Claude">Промпт</button><span class="copied" aria-live="polite"></span></div></div>`).join('')}</div>`;
  return `<div class="vars">${vs.map((v,i)=>`<div class="var"><button data-act="var" aria-expanded="false"><b>${esc(v.k)}</b><span><small>${esc(v.dept)}</small>${esc(v.title)}</span><em>${esc(v.hours)}</em><i>›</i></button>${v.hook?`<div class="vb v9"><p class="hook">${esc(v.hook)}</p><div class="va"><button class="btn" data-act="tv" data-k="${esc(v.k)}">Пролистать →</button><button class="btn ghost" data-act="tdl" data-k="${esc(v.k)}">Скачать ↓</button><button class="btn ghost" data-act="tcopy" data-k="${esc(v.k)}">Скопировать промпт для Claude</button><span class="copied" aria-live="polite"></span></div></div>`:`<div class="vb"><h4>Что получится</h4><p>${esc(v.result)}</p>${v.steps&&v.steps.length?`<h4>Шаги</h4><ol>${v.steps.map(x=>`<li>${esc(x)}</li>`).join('')}</ol>`:''}</div>`}</div>`).join('')}</div>`}
 const GLOSS=((RAW&&RAW.glossary)||[]).filter(g=>g&&g.term);
