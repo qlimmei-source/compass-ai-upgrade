@@ -501,26 +501,20 @@ body.playing #stage .pod,body.playing #stage .read{pointer-events:none}
 .ctl.d3{clip-path:polygon(0 8%,40% 0,52% 18%,66% 4%,100% 30%,94% 62%,100% 100%,30% 92%,14% 100%,0 70%);transform:rotate(-4deg) translate(2px,3px)}
 .ctl.d4{clip-path:polygon(10% 10%,46% 0,60% 24%,90% 12%,80% 56%,96% 90%,40% 80%,20% 96%,4% 58%);transform:rotate(11deg) translate(8px,16px);opacity:.38}
 .fixing{transition:transform .5s cubic-bezier(.3,1.6,.5,1),opacity .4s,clip-path .4s,filter .4s!important}
-/* телефон: заглушка «откройте с компьютера» (Алексей, 12.11) */
+/* телефон: одна плашка «откройте на компьютере» (Алексей, 13.11) */
 #phone{display:none}
-body.m{overflow:auto;height:auto;width:auto}
-body.m #stage,body.m #sheet{display:none}
-body.m #phone{display:flex;flex-direction:column;min-height:100vh;padding:28px 22px 30px;position:relative;overflow:hidden;
-  background:radial-gradient(circle at 1px 1px,#2a2b22 1px,transparent 1.5px) 0 0/22px 22px,#000}
-#phone .logo{height:40px;align-self:flex-start}
-#phone .tag{margin-top:14px;font:400 12px var(--fp);letter-spacing:.14em;color:var(--dim)}
-#phone .tag b{font-weight:400;color:var(--iv)}
-#phone .spark{margin-top:26px;padding-top:0}
-#phone h1{margin-top:22px;font:800 34px/38px var(--fd);letter-spacing:-.02em}
-#phone h1 em{font-style:normal;color:var(--g)}
-#phone .term{margin-top:18px;font:400 14px/22px var(--fp)}
-#phone p{margin-top:16px;font:500 16px/24px var(--fd);color:var(--iv)}
-#phone .read{margin-top:26px;justify-content:center;height:56px;font-size:16px}
-#phone .bar{margin-top:auto;padding-top:34px;display:flex;justify-content:space-between;font:500 11px var(--fm);letter-spacing:.18em;color:var(--dim)}
-#phone .rib{position:absolute;right:-38px;top:90px;width:96px;height:300px;border-radius:48px;border:3px solid var(--g);opacity:.9;
-  background:repeating-linear-gradient(transparent 0 6px,rgba(172,185,72,.45) 6px 9px) 50% 0/36px 100% no-repeat,#050505;
-  box-shadow:0 0 0 14px #000,0 0 0 16px rgba(172,185,72,.35)}
-#phone .line{position:fixed;left:0;right:0;bottom:0;height:6px;background:var(--g)}
+body.m{overflow:hidden;height:100%;width:auto}
+body.m>*:not(#phone){display:none!important}
+body.m #phone{display:flex;position:fixed;inset:0;align-items:center;justify-content:center;padding:14px;box-sizing:border-box;background:radial-gradient(circle at 1px 1px,#2a2b22 1px,transparent 1.5px) 0 0/22px 22px,#000}
+.stub{box-sizing:border-box;width:100%;max-width:360px;max-height:100%;overflow:hidden;padding:22px 18px 20px;background:#0b0b0a;border:2px solid #ACB948;box-shadow:0 0 0 3px #000,0 0 22px 2px rgba(172,185,72,.28);color:#E5E4DF;text-align:center;font-family:"Manrope",Arial,sans-serif}
+.stub .logo{display:block;height:34px;width:auto;margin:0 auto 18px}
+.stub h1{margin:0;font:800 30px/34px "Manrope",Arial,sans-serif;color:#fff;letter-spacing:-.01em}
+.stub h1 em{font-style:normal;color:#ACB948}
+.stub p{margin:12px 0 0;font:500 16px/23px "Manrope",Arial,sans-serif;color:#E5E4DF}
+.stub .shw{margin:16px 0 18px;padding:10px 12px;background:rgba(172,185,72,.13);border:2px solid #ACB948;font:700 16px/22px "Manrope",Arial,sans-serif;color:#fff}
+.stub .lgo{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box;min-height:52px;background:#ACB948;color:#000;border:0;font:700 16px "Manrope",Arial,sans-serif;cursor:pointer;box-shadow:0 0 0 2px #000,0 0 0 4px #ACB948;animation:lureGlow 3.2s ease-in-out infinite}
+@keyframes lureGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+@media (prefers-reduced-motion:reduce){.stub .lgo{animation:none}}
 /* v12 · кнопки действий «сигналят»: главная — залитая в рамке, вторая — контур; при открытии карточки — 3 волны, дальше тихое дыхание; при наведении — яркая вспышка */
 #card .acts{gap:16px 20px}
 #card .acts .btn.pri,#card .va .btn:first-child,#card .acts .btn.sec,#card .va .btn.ghost{position:relative;cursor:pointer}
@@ -554,44 +548,6 @@ body.fxoff .nb .st.hw,body.fxoff .pod-start .fd.hw{animation:none!important}
 /* связанная подсветка (v11) не заливает вторую кнопку: контур остаётся контуром, пока курсор не на ней */
 body.hv-card #card .acts .btn.sec:not(:hover),body.hv-card #card .var .va .btn.ghost:not(:hover),body.hv-card #card .vt .va .btn.ghost:not(:hover){background:rgba(172,185,72,.07);color:var(--w);border-color:var(--g)}
 @media (prefers-reduced-motion:reduce){#card .acts .btn,#card .va .btn,#card .acts .btn::after,#card .va .btn::after{animation:none!important}}
-/* v12 · приманка «на компьютере интереснее» — только телефон */
-.lure{display:none;margin:0;padding:16px 16px 18px;background:#0b0b0a;border:2px solid #ACB948;box-shadow:0 0 0 3px #000,0 0 22px 2px rgba(172,185,72,.28);color:#E5E4DF;text-align:left;font-family:"Manrope",Arial,sans-serif}
-@media (hover:none) and (pointer:coarse) and (max-width:900px){.lure{display:block}}
-body.m .lure{display:block}
-.lure .lt{font:800 22px/26px "Manrope",Arial,sans-serif;color:#fff;letter-spacing:-.01em}
-.lure .lt em{font-style:normal;color:#ACB948}
-.lure .lscene{position:relative;height:92px;margin:12px 0 10px;overflow:hidden;background:#000;border:1px solid #3a3a36}
-.lure .lscene i{position:absolute;top:12px;height:60px;border:1px solid #ACB948;background:rgba(172,185,72,.08)}
-.lure .lscene i:nth-child(1){left:8%;width:24%}
-.lure .lscene i:nth-child(2){left:38%;width:24%;opacity:.7}
-.lure .lscene i:nth-child(3){left:68%;width:24%;opacity:.5}
-.lure .lscene i::before{content:"";position:absolute;left:5px;right:5px;top:6px;height:4px;background:#ACB948;opacity:.8}
-.lure .lscene i::after{content:"";position:absolute;left:5px;width:40%;top:16px;height:3px;background:#8f8f88;box-shadow:0 7px 0 #8f8f88,0 14px 0 #8f8f88}
-.lure .lscene svg{position:absolute;bottom:6px;left:0;width:34px;height:auto;animation:lureWalk 7s ease-in-out infinite alternate}
-.lure .lscene svg g{animation:lureBob .5s steps(2) infinite}
-.lure .lscene .lpx{position:absolute;right:8px;top:6px;width:6px;height:6px;background:#ACB948;animation:lureBlink 1.6s steps(2) infinite}
-@keyframes lureWalk{0%{transform:translateX(6px)}100%{transform:translateX(250px)}}
-@keyframes lureBob{0%{transform:translateY(0)}100%{transform:translateY(-3px)}}
-@keyframes lureBlink{0%{opacity:1}100%{opacity:.15}}
-.lure ul{margin:0 0 14px;padding:0;list-style:none;font:500 15.5px/22px "Manrope",Arial,sans-serif}
-.lure li{padding-left:18px;position:relative;margin-top:5px}
-.lure li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;background:#ACB948}
-.lure .lgo{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;box-sizing:border-box;min-height:52px;background:#ACB948;color:#000;border:0;font:700 16px "Manrope",Arial,sans-serif;cursor:pointer;box-shadow:0 0 0 2px #000,0 0 0 4px #ACB948;animation:lureGlow 3.2s ease-in-out infinite}
-@keyframes lureGlow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
-.lure .lhint{margin-top:10px;font:500 13.5px/19px "Manrope",Arial,sans-serif;color:#8f8f88}
-@media (prefers-reduced-motion:reduce){.lure .lscene svg,.lure .lscene svg g,.lure .lscene .lpx,.lure .lgo{animation:none}}
-
-/* v12 · приманка: первым — домашнее задание и срок, игры и мемы — вторым планом */
-.lure .lhw{display:block;position:relative;margin:0 0 16px;padding:14px 14px 15px;background:rgba(172,185,72,.13);border:2px solid #ACB948;box-shadow:0 0 0 3px #000,0 0 0 5px #ACB948,0 0 22px 2px rgba(172,185,72,.38);animation:lureHw 3.2s ease-in-out infinite}
-.lure .lhw .lk{display:inline-block;background:#ACB948;color:#000;font:800 12.5px/1 "Manrope",Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;padding:6px 9px 5px}
-.lure .lhw b{display:block;margin:10px 0 6px;font:600 40px/1.05 "Pixelify","Manrope",Arial,sans-serif;color:#fff;letter-spacing:.01em}
-.lure .lhw .ld{display:block;font:700 16.5px/23px "Manrope",Arial,sans-serif;color:#E5E4DF}
-.lure .lt{font-size:17px;line-height:22px;font-weight:700;color:#cfcec8}
-@keyframes lureHw{0%,100%{box-shadow:0 0 0 3px #000,0 0 0 5px #ACB948,0 0 12px 1px rgba(172,185,72,.25)}50%{box-shadow:0 0 0 3px #000,0 0 0 5px #ACB948,0 0 30px 6px rgba(172,185,72,.6)}}
-@media (prefers-reduced-motion:reduce){.lure .lhw{animation:none}}
-body.m .lure{margin-top:22px}
-#phone .lure{margin-top:20px}
-#phone .rib{display:none}
 /* v12 · новичку: строка «три шага», заметное «Начните здесь», крупные кнопки вместо ползунков в блоке 01 */
 .nb{left:120px;top:106px;width:1680px;height:30px;display:flex;align-items:center;gap:14px;font:600 17px/1 var(--fd);color:var(--iv);background:#000;z-index:3}
 .nb .q{font-weight:800;color:var(--w)}
@@ -877,6 +833,7 @@ window.__memes={open,close,list:MEMES};
 
 </div></div>
 <main id="phone">
+  <aside class="stub" id="lure" aria-label="Откройте на компьютере">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 202.529 64.574" class="logo" role="img" aria-label="Compass College">
 <title>Compass College — additional logo 1, white</title>
 <path fill="#FFFFFF" d="M92.115 3.233C93.168 3.233 94.178 3.371 95.144 3.646C96.111 3.921 96.911 4.258 97.545 4.654C98.178 5.049 98.731 5.441 99.204 5.828C99.678 6.215 100.026 6.548 100.249 6.828L100.568 7.234L98.494 9.322C98.436 9.246 98.351 9.136 98.24 8.997C98.129 8.857 97.876 8.602 97.479 8.235C97.083 7.867 96.658 7.551 96.204 7.285C95.748 7.02 95.156 6.774 94.427 6.546C93.697 6.318 92.927 6.206 92.115 6.206C89.959 6.206 88.132 6.952 86.633 8.444C85.136 9.938 84.386 11.763 84.386 13.919C84.386 16.074 85.133 17.901 86.627 19.4C88.12 20.898 89.949 21.647 92.115 21.647C92.927 21.647 93.703 21.533 94.441 21.307C95.182 21.079 95.795 20.806 96.283 20.487C96.77 20.168 97.201 19.852 97.574 19.538C97.945 19.224 98.223 18.955 98.407 18.733L98.639 18.37L100.727 20.458C100.65 20.575 100.531 20.727 100.372 20.915C100.213 21.103 99.86 21.435 99.314 21.908C98.767 22.382 98.187 22.803 97.574 23.17C96.96 23.537 96.157 23.868 95.167 24.163C94.175 24.458 93.158 24.605 92.115 24.605C89.002 24.605 86.392 23.571 84.284 21.503C82.178 19.433 81.124 16.905 81.124 13.919C81.124 10.931 82.178 8.403 84.284 6.336C86.392 4.267 89.002 3.233 92.115 3.233"/>
@@ -897,27 +854,11 @@ window.__memes={open,close,list:MEMES};
 <path fill="#FFFFFF" d="M34.27 15.015C29.05 15.015 24.786 16.666 21.234 20.063C17.704 23.443 15.988 27.363 15.988 32.048C15.988 36.732 17.704 40.653 21.234 44.032C24.786 47.43 29.05 49.081 34.27 49.081C36.016 49.081 37.74 48.848 39.394 48.39C41.061 47.928 42.395 47.412 43.363 46.858C44.375 46.281 45.333 45.613 46.214 44.874C46.952 44.253 47.372 43.872 47.609 43.644L42.98 38.739C42.827 38.867 42.661 39.003 42.481 39.148C41.945 39.579 41.332 40.01 40.608 40.462C39.832 40.946 38.886 41.343 37.793 41.643C36.715 41.939 35.612 42.09 34.514 42.09C31.601 42.09 29.13 41.12 27.171 39.21C25.201 37.285 24.204 34.88 24.204 32.061C24.204 29.244 25.201 26.835 27.167 24.903L27.168 24.902C29.127 22.982 31.598 22.009 34.514 22.009C35.588 22.009 36.673 22.175 37.74 22.502C38.789 22.827 39.641 23.186 40.348 23.598C41.037 24 41.692 24.464 42.295 24.978C42.465 25.123 42.62 25.257 42.758 25.379L47.515 20.432C47.244 20.16 46.807 19.76 46.148 19.237C45.36 18.612 44.401 17.958 43.298 17.293C42.273 16.679 40.94 16.141 39.343 15.695C37.733 15.243 36.028 15.015 34.27 15.015M34.27 52.126C28.312 52.126 23.217 50.143 19.129 46.233C15.024 42.303 12.942 37.531 12.942 32.048C12.942 26.565 15.024 21.792 19.129 17.864C23.217 13.952 28.312 11.97 34.27 11.97C36.306 11.97 38.289 12.236 40.163 12.763C42.02 13.281 43.603 13.927 44.867 14.682C46.101 15.427 47.138 16.136 48.041 16.85C48.991 17.605 49.687 18.252 50.171 18.829L51.544 20.634L42.821 29.707L41.723 28.63C41.608 28.516 41.45 28.354 41.251 28.133C41.115 27.986 40.797 27.702 40.321 27.297C39.853 26.898 39.347 26.54 38.814 26.229C38.316 25.938 37.652 25.663 36.841 25.411C36.058 25.171 35.296 25.054 34.514 25.054C32.394 25.054 30.688 25.715 29.3 27.076C27.92 28.433 27.249 30.064 27.249 32.061C27.249 34.057 27.92 35.682 29.299 37.032C30.687 38.385 32.393 39.044 34.514 39.044C35.339 39.044 36.171 38.931 36.986 38.707C37.795 38.484 38.471 38.206 38.994 37.879C39.605 37.498 40.136 37.126 40.571 36.775C41 36.431 41.342 36.142 41.594 35.91L42.988 34.309L51.594 43.431L50.897 44.444C50.744 44.666 50.514 44.964 50.205 45.331C49.981 45.596 49.548 46.049 48.173 47.206C47.151 48.063 46.042 48.835 44.875 49.501C43.674 50.19 42.146 50.787 40.207 51.324C38.289 51.856 36.291 52.126 34.27 52.126"/>
 </svg>
 
-  <div class="tag">COMPASS AI UPGRADE <b>/</b> ПУЛЬТ</div>
-  <aside class="lure" id="lure" aria-label="На компьютере интереснее">
-    <div class="lhw"><span class="lk">Есть домашнее задание</span><b>до 1 декабря</b><span class="ld">Открывается на компьютере в пульте.</span></div>
-    <div class="lt">Там же — <em>интереснее</em></div>
-    <div class="lscene" aria-hidden="true"><i></i><i></i><i></i><span class="lpx"></span>
-      <svg viewBox="0 0 14 9" shape-rendering="crispEdges"><g fill="#E8744A"><rect x="1" y="0" width="12" height="6"/><rect x="0" y="2" width="1" height="3"/><rect x="13" y="2" width="1" height="3"/><rect x="2" y="6" width="2" height="3"/><rect x="5" y="6" width="2" height="2"/><rect x="8" y="6" width="2" height="2"/><rect x="11" y="6" width="2" height="3"/></g><g fill="#000"><rect x="3" y="2" width="2" height="2"/><rect x="9" y="2" width="2" height="2"/></g></svg></div>
-    <ul>
-      <li>Пульт оживает: по блокам гуляют маленькие Claude.</li>
-      <li>Игры: танк, змейка, захватчик и DEEPCORE.</li>
-      <li>Мемы про ИИ — отдельной страницей.</li>
-    </ul>
-    <button class="lgo" id="lureGo" type="button"><span id="lureTxt">Отправить ссылку себе</span><span aria-hidden="true">→</span></button>
-    <div class="lhint">Откроете её на компьютере — всё это уже ждёт там.</div>
-  </aside>
-  <i class="rib" aria-hidden="true"></i>
-  <div class="spark"><svg width="45" height="45" viewBox="0 0 54 54" aria-hidden="true"><g fill="#ACB948"><rect x="24" y="0" width="5" height="5"/><rect x="24" y="6" width="5" height="5"/><rect x="18" y="12" width="5" height="5"/><rect x="24" y="12" width="5" height="5"/><rect x="30" y="12" width="5" height="5"/><rect x="0" y="18" width="5" height="5"/><rect x="12" y="18" width="29" height="5"/><rect x="48" y="18" width="5" height="5"/><rect x="0" y="24" width="53" height="5"/><rect x="0" y="30" width="5" height="5"/><rect x="12" y="30" width="29" height="5"/><rect x="48" y="30" width="5" height="5"/><rect x="18" y="36" width="17" height="5"/><rect x="24" y="42" width="5" height="5"/><rect x="24" y="48" width="5" height="5"/></g></svg></div>
-  <h1>Пульт <em>для чтения</em></h1>
-  <p>Все навыки, ссылки и первые шаги — одной страницей.</p>
-<a class="read" href="read.html"><i>&gt;_</i>ЧИТАТЬ<i>→</i></a>
-  <div class="bar"><span>COMPASS COLLEGE</span><span>COMPASS AI UPGRADE</span></div>
-  <i class="line"></i>
+  <h1>Откройте <em>на компьютере</em></h1>
+  <p>Пульт и задания работают только на компьютере.</p>
+  <div class="shw">Домашнее задание — <span style="white-space:nowrap">до 1 декабря</span></div>
+  <button class="lgo" id="lureGo" type="button"><span id="lureTxt">Отправить ссылку себе</span><span aria-hidden="true">→</span></button>
+</aside>
 </main>
 
 <script>
@@ -1794,7 +1735,7 @@ $('#memesBtn').onclick=()=>memes(true);
 
 /* ================= FIT ================= */
 function fit(){const W=innerWidth,Hh=innerHeight;const m=W<900||(screen.width<900&&matchMedia('(pointer:coarse)').matches);
-  if(m&&!MOBILE&&/^https?:$/.test(location.protocol))location.replace('read.html');
+  if(m&&!MOBILE&&/^https?:$/.test(location.protocol)&&!matchMedia('(hover:none) and (pointer:coarse)').matches)location.replace('read.html');
   if(m!==MOBILE){MOBILE=m;document.body.classList.toggle('m',m);if(m&&mode!=='cursor')setMode('cursor')}
   if(m){SC=1;stage.style.transform='';return}
   SC=Math.min(W/1920,Hh/1080);OX=(W-1920*SC)/2;OY=(Hh-1080*SC)/2;stage.style.transform=`translate(${OX}px,${OY}px) scale(${SC})`}
