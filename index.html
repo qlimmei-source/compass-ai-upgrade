@@ -650,7 +650,11 @@ body.tour.nbhide .tourb{right:224px}
 @media (prefers-reduced-motion:reduce){#tourHoles rect,.tfr,#tourKey,.tcap{transition:none}#tourKey.pulse{animation:none}}
 /*<TOUR*/
 /*NOV>*/
-/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2) ================= */
+/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2 · 14.11, v3) ================= */
+/* v3 · верх пульта проще (Алексей, 14.11: «куча заголовков», «без подписей бестолковых, мелких»): один заголовок — логотип; строка «Вы здесь впервые? Три шага» убрана —
+   те же три шага есть в блоке «Начало» и в режиме новичка; под заголовками блоков и в центре нет мелких пояснений */
+.hdr>.crumb,.nb,.ph .here,.pod.main .lead,#card .idle>.hint{display:none!important}
+.tourb,body.tour .tourb,body.tour.nbhide .tourb{right:120px}
 /* кнопка входа: в полном пульте — яркий язычок на верхней рамке слева; в режиме новичка — маленькая «← Полный пульт» в правом углу шапки */
 .novb{position:absolute;left:120px;top:0;z-index:6;display:inline-flex;align-items:center;gap:12px;height:40px;padding:0 18px 0 6px;border:2px solid var(--g);background:var(--g);color:#000;font:800 18px var(--fm);letter-spacing:.14em;white-space:nowrap;box-shadow:0 0 18px 2px rgba(172,185,72,.5);transition:background .15s,color .15s,box-shadow .15s;animation:novGlow 2.4s ease-in-out infinite}
 .novb b{display:inline-block;width:30px;height:30px;background:#000;color:var(--g);font:600 21px/30px var(--fx);text-align:center;letter-spacing:0}
@@ -660,7 +664,17 @@ body.tour.nbhide .tourb{right:224px}
 .novb:hover small,.novb:focus-visible small{border-left-color:rgba(172,185,72,.4)}
 @keyframes novGlow{0%,100%{box-shadow:0 0 14px 1px rgba(172,185,72,.4)}50%{box-shadow:0 0 30px 6px rgba(172,185,72,.7)}}
 body.fxoff .novb{animation:none}
-body.m .novb,body.playing .novb,body.tvopen .novb,body.tour .novb{display:none}
+/* v3 · «Режим новичка» в полном пульте: оранжевая плашка на месте прежней строки «COMPASS AI UPGRADE / ПУЛЬТ», сияет; на ней стоит Claude и машет */
+.novb.novfull{left:300px;top:54px;height:48px;padding:0 26px;gap:0;border:3px solid #E8793F;border-radius:12px;background:#120a05;color:#FFA66B;font:800 25px var(--fd);letter-spacing:.01em;text-transform:none;box-shadow:0 0 18px 2px rgba(232,121,63,.45);animation:novOr 2.6s ease-in-out infinite;overflow:visible}
+.novb.novfull .novc{position:absolute;left:18px;bottom:calc(100% - 3px);image-rendering:pixelated;pointer-events:none}
+.novb.novfull .novhey{position:absolute;left:112px;bottom:calc(100% + 6px);padding:3px 10px 4px;border:2px solid #E8793F;border-radius:10px 10px 10px 0;background:#120a05;color:#FFA66B;font:800 17px var(--fd);font-style:normal;white-space:nowrap;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s;pointer-events:none}
+.novb.novfull.hey .novhey{opacity:1;transform:none}
+.novb.novfull:hover,.novb.novfull:focus-visible{background:#E8793F;color:#000;box-shadow:0 0 30px 6px rgba(232,121,63,.7);outline:none;animation:none}
+@keyframes novOr{0%,100%{box-shadow:0 0 12px 1px rgba(232,121,63,.35)}50%{box-shadow:0 0 30px 7px rgba(232,121,63,.75)}}
+body.fxoff .novb.novfull{box-shadow:0 0 18px 2px rgba(232,121,63,.45)}
+body.tour .novb.novfull{display:inline-flex;animation:none}
+
+body.m .novb,body.playing .novb,body.tvopen .novb,body.tour .novb:not(.novfull){display:none}
 body.nov .novb{left:auto;right:120px;top:50px;height:44px;padding:0 16px 0 6px;font-size:15px;gap:10px;background:#000;color:var(--g);border-width:2px;box-shadow:4px 4px 0 #1d1f12;animation:none}
 body.nov .novb b{width:30px;height:30px;font-size:18px;line-height:30px;background:var(--g);color:#000}
 body.nov .novb:hover,body.nov .novb:focus-visible{background:var(--g);color:#000}
@@ -671,7 +685,7 @@ body.nov .novb:hover b,body.nov .novb:focus-visible b{background:#000;color:var(
 body.nov:not(.m) #nov{display:block}
 body.nov:not(.m) #fx,body.nov:not(.m) [data-claudes],body.nov:not(.m) #pods,body.nov:not(.m) #arena,body.nov:not(.m) #spine,body.nov:not(.m) #deco,
 body.nov:not(.m) .nb,body.nov:not(.m) .tourb,body.nov:not(.m) .ftr .lg,body.nov:not(.m) #toast,body.nov:not(.m) .game,
-body.nov:not(.m) .hdr>*:not(.logo):not(.crumb):not(.hsp){display:none!important}
+body.nov:not(.m) .hdr>*:not(.logo):not(.hsp){display:none!important}
 body.nov:not(.m) #stage *:not(.novb){animation:none!important}
 
 #nov{position:absolute;left:120px;top:126px;width:1680px;height:890px;font-family:var(--fd);color:var(--iv)}
@@ -737,6 +751,42 @@ body.nov:not(.m) #stage *:not(.novb){animation:none!important}
 .nx.dense .nnext.ghost{height:52px;margin-top:4px}
 .nx.dense .nsk span{font-size:16px;padding:4px 10px}
 .nx.dense .nsk span b{font-size:16px}
+
+/* v3 · шаг: название, строка «зачем», три действия «ролик + строка», кнопка — под своим действием */
+.ncard.nstep{left:40px;width:1600px;top:90px;max-height:800px;padding:30px 48px 32px}
+.nstep h2{margin:0}
+.nstep .nw{margin:6px 0 0;font-size:24px}
+.ncols{margin:22px 0 0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,1fr);gap:36px}
+.ncols>li{display:flex;flex-direction:column;min-width:0}
+.nvid{position:relative;aspect-ratio:16/9;background:#111;border:2px solid #3b3e22;overflow:hidden}
+.nvid .nclip{display:block;width:100%;height:100%;object-fit:cover}
+.nvid>b{position:absolute;left:0;top:0;width:52px;height:52px;background:var(--g);color:#000;font:600 30px/52px var(--fx);text-align:center}
+.ncols>li>p{margin:16px 0 0;font:400 23px/1.38 var(--fd);color:var(--iv)}
+.ncols .nacts{margin-top:18px}
+.ncols .nmain{height:68px;padding:0 30px;font-size:25px}
+.nstep>.nnext{margin-top:26px}
+.ncard.nstep.dense{padding-top:24px;padding-bottom:24px}
+.ncard.nstep.dense h2{font-size:40px}
+.ncard.nstep.dense .nw{font-size:20px}
+.nstep.dense .ncols{margin-top:14px;gap:28px}
+.nstep.dense .ncols>li>p{font-size:19px;margin-top:10px}
+.nstep.dense .ncols .nacts{margin-top:10px}
+.nstep.dense .ncols .nmain{height:56px;font-size:21px}
+.nstep.dense>.nnext{margin-top:14px;height:58px;font-size:22px}
+/* «Хотите больше? · Коннекторы»: ролик справа от текста */
+.ncard.nxv{left:40px;width:1600px;display:grid;grid-template-columns:1fr 640px;grid-template-rows:auto 1fr auto auto;column-gap:44px}
+.nxv>h2{grid-column:1/3}
+.nxv>.nxclip{grid-column:2;grid-row:2/5;align-self:start;margin-top:18px}
+.nxv>.nbd,.nxv>.nacts,.nxv>.nnext{grid-column:1;justify-self:start}
+/* финал: Claude крупнее, оранжевый */
+.nfin .nclaude{image-rendering:pixelated}
+/* доводка 14.11: под названием шага строки-пояснения нет; у домашнего задания — только срок значком рядом с названием */
+.nstep h2{display:flex;align-items:center;gap:22px}
+.nstep .ndue{font:700 22px/1 var(--fx);font-style:normal;letter-spacing:.06em;text-transform:uppercase;background:var(--g);color:#000;padding:10px 14px 9px}
+/* 14.11 01:42: во время тура Claude садится внутрь плашки — его видно в светлой рамке тура, он двигается; «Эй, эй!» в туре не показывается (оно над рамкой) */
+body.tour .novb.novfull{padding-left:96px}
+body.tour .novb.novfull .novc{bottom:auto;top:0;left:16px;width:70px!important;height:42px!important}
+body.tour .novb.novfull .novhey{opacity:0}
 /*<NOV*/
 </style>
 </head>
@@ -1043,6 +1093,7 @@ let SC=1,OX=0,OY=0,MOBILE=false;
 /* ================= DATA ================= */
 // content.json, схема 1 (console/data/README.md): groups[{id,num,title,lead}], items[{id,group,title,what,status,link,soon_note,via,steps,copy,try,note,caveat,verified}]
 const GCONF={start:{w:'faders',counter:'сделано',mark:'сделано'},skills:{w:'list',counter:'есть',mark:'есть у меня'},sources:{w:'list2',counter:'читаю',mark:'читаю'},features:{w:'feat',counter:'есть',mark:'есть у меня'},soon:{w:'vault',counter:'',mark:''}};
+const SKILLNAME={ready:'Образ готовой работы',council:'Проверка текста',motion:'Анимация и ролики'},FEATNAME={'remote-control':'Управление с телефона',usage:'Сколько лимита потрачено (/usage)'};
 function splitTitle(t){const m=String(t).split(' — ');return m.length>1?[m[0],m.slice(1).join(' — ')]:[t,'']}
 function normalize(raw){
   const gs=(raw&&raw.groups)||[],its=(raw&&raw.items)||[];
@@ -1050,6 +1101,10 @@ function normalize(raw){
     return{id:String(g.id),num:g.num||String(gi+1).padStart(2,'0'),title:g.title||'',lead:g.lead||'',counter:c.counter,mark:c.mark,widget:c.w,
       items:its.filter(it=>it.group===g.id).map(it=>{let [name,label]=g.id==='skills'?splitTitle(it.title||''):g.id==='features'?[it.short||String(it.title||'').split(' (')[0].split(' — ')[0],it.tag||'']:[it.short||it.title||'',''];let sub='';
         const tg=name.match(/^Telegram-канал\s+(.+)$/);if(tg){sub='Telegram';name=tg[1].replace(/^«(.+)»$/,'$1')}
+        /*CAP14: без мелких подписей (14.11) — понятное название вместо подписи*/
+        if(g.id==='skills'&&label){name=(SKILLNAME[name]||label[0].toUpperCase()+label.slice(1))+' ('+name+')';label=''}
+        if(g.id==='features'){name=FEATNAME[it.id]||name;label=''}
+        if(tg){name='Канал '+name;sub=''}
         return{id:String(it.id),title:it.title||'',name,label,sub,what:it.what||'',status:it.status==='ready'?'ok':'soon',
           media:it.media||null,variants:it.variants||[],url:it.link&&it.link.url||'',urlLabel:it.link&&it.link.label||'',links:(it.links||[]).filter(l=>l&&l.url),copy:it.copy&&it.copy.text||'',copyLabel:it.copy&&it.copy.label||'',copyFirst:!!it.copy_first,copy2:it.copy2&&it.copy2.text||'',copy2Label:it.copy2&&it.copy2.label||'',downloads:(it.downloads||[]).filter(d=>d&&d.url),
           steps:it.steps||[],try:it.try||'',note:it.note||'',warn:it.caveat||'',soonNote:it.soon_note||'',via:it.via||'',kind:'item'}})}});
@@ -1065,7 +1120,7 @@ function lessonsHead(){const w=$('#lwrap');if(!w||!LESSONS.length)return;w.hidde
   w.innerHTML=`<button class="gbtn lbtn" id="lessonsBtn" aria-haspopup="true" aria-expanded="false"><i>▶</i>ЗАНЯТИЯ ▾</button><div class="mode" role="menu" aria-label="Занятия">${LESSONS.map(l=>`<a role="menuitem" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(lName(l))} ↗</a>`).join('')}</div>`;
   const b=$('#lessonsBtn');b.onclick=e=>{e.stopPropagation();const o=!w.classList.contains('open');w.classList.toggle('open',o);b.setAttribute('aria-expanded',o)};
   document.addEventListener('click',e=>{if(!e.target.closest('#lwrap')){w.classList.remove('open');b.setAttribute('aria-expanded','false')}})}
-function lessonsHTML(){return LESSONS.length?`<div class="lsn"><div class="lh">ЗАНЯТИЯ</div><ol>${LESSONS.map(l=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener" data-lesson="${esc(l.id||'')}"><b>${l.kind==='video'?'▶':'▤'}</b><span><strong>${esc(lName(l))}</strong>${esc(l.what||'')}</span><i>↗</i></a></li>`).join('')}</ol></div>`:''}
+function lessonsHTML(){return LESSONS.length?`<div class="lsn"><div class="lh">ЗАНЯТИЯ</div><ol>${LESSONS.map(l=>`<li><a href="${esc(l.url)}" target="_blank" rel="noopener" data-lesson="${esc(l.id||'')}"><b>${l.kind==='video'?'▶':'▤'}</b><span><strong>${esc(lName(l))}</strong></span><i>↗</i></a></li>`).join('')}</ol></div>`:''}
 
 /* marks: «есть у меня / сделано / читаю» — помнит браузер */
 const LS='compass_console_marks_v2';
@@ -1096,7 +1151,7 @@ H.keys=g=>'<div class="keys">'+g.items.map(it=>`<button ${ctlAttrs(it,'key')}>${
 H.knobs=g=>'<div class="knobs">'+g.items.map(it=>`<button ${ctlAttrs(it,'kc')}>${knobSVG(it)}<span class="kl">${it.sub?'<small>'+esc(it.sub)+'</small>':''}${esc(it.name)}${badge(it)}</span></button>`).join('')+'</div>';
 function dueOf(it){const m=/до \d+ [а-яё]+/i.exec(it.note||'');return m?m[0]:''}
 H.faders=g=>'<div class="faders">'+g.items.map((it,i)=>`<button ${ctlAttrs(it,it.id==='homework'&&dueOf(it)?'fd hw':'fd')}><span class="trk"><i class="cap"></i></span><span class="fl"><b>${i+1}</b>${esc(it.name)}${badge(it)}${it.id==='homework'&&dueOf(it)?`<em class="due">${esc(dueOf(it))}</em>`:''}</span><i class="ar" aria-hidden="true">→</i></button>`).join('')+'</div>';
-H.vault=g=>g.items.map(it=>it.variants.length?`<button ${ctlAttrs(it,'hatch open')}><span class="lock">${peakSVG()}</span><span class="ht"><b>${esc(it.name)}</b><span>${it.variants.length} вариантов, ${esc(it.variants[0].k)}–${esc(it.variants[it.variants.length-1].k)}. Выберите один — Claude поведёт по шагам</span><em>ОТКРЫТЬ →</em></span></button>`:`<button ${ctlAttrs(it,'hatch')}><span class="lock">${lockSVG()}</span><span class="ht"><b>${esc(it.name)}</b><span>${esc(it.soonNote||'')}</span><em><i class="lamp"></i>СКОРО</em></span></button>`).join('');
+H.vault=g=>g.items.map(it=>it.variants.length?`<button ${ctlAttrs(it,'hatch open')}><span class="lock">${peakSVG()}</span><span class="ht"><b>${esc(it.name)}</b><em>ОТКРЫТЬ →</em></span></button>`:`<button ${ctlAttrs(it,'hatch')}><span class="lock">${lockSVG()}</span><span class="ht"><b>${esc(it.name)}</b><span>${esc(it.soonNote||'')}</span><em><i class="lamp"></i>СКОРО</em></span></button>`).join('');
 function lockSVG(o){const R=o?["..####..",".#....#.",".#......",".#......","########","###..###","###..###","########"]:["..####..",".#....#.",".#....#.","########","###..###","###..###","########"];let s='<svg width="48" height="42" viewBox="0 0 48 42">';R.forEach((r,j)=>[...r].forEach((c,i)=>{if(c==='#')s+=`<rect x="${i*6}" y="${j*6}" width="5" height="5" fill="#ACB948"/>`}));return s+'</svg>'}
 // «Сложное задание на выбор»: гора с флагом на вершине — трудно, но дойти можно. 11×8 клеток = 66×48, целиком в своём месте
 function peakSVG(){const R=[".....###...",".....##....",".....#.....","....###....","...#####...","..#######..",".#########.","###########"];let s='<svg width="66" height="48" viewBox="0 0 66 48" role="img" aria-label="Гора с флагом">';R.forEach((r,j)=>[...r].forEach((c,i)=>{if(c==='#')s+=`<rect x="${i*6}" y="${j*6}" width="5" height="5" fill="#ACB948"/>`}));return s+'</svg>'}
@@ -1110,11 +1165,11 @@ function knobSVG(it){let s=`<svg width="78" height="78" viewBox="-4 -4 78 78">`;
 const IS_MAC=/Mac|iPhone|iPad/i.test((navigator.userAgentData&&navigator.userAgentData.platform)||navigator.platform||navigator.userAgent||'');
 function mhDl(){const d=(ITEMS.masterhub&&ITEMS.masterhub.downloads)||[];const mac=d.find(x=>/mac/i.test(x.label)),win=d.find(x=>!/mac/i.test(x.label));return IS_MAC?[mac||win,win]:[win||mac,mac]}
 function mhHTML(){const it=ITEMS.masterhub;if(!it)return'';const [d1,d2]=mhDl();
- return `<div class="in"><div class="ph"><span class="n">★</span><span class="t">главный набор</span><span class="c"></span></div>
- <div class="mhb"><button ${ctlAttrs(it,'mht')} title="Что внутри MasterHub">MASTER<br>HUB</button><div class="mhs">Все навыки Алексея одним архивом. Главный чат раздаёт задачи агентам.</div>
+ return `<div class="in"><div class="ph"><span class="n">★</span><span class="t">все навыки</span><span class="c"></span></div>
+ <div class="mhb"><button ${ctlAttrs(it,'mht')} title="Что внутри MasterHub">MASTER<br>HUB</button><!--CAP14 mhs-->
  ${d1?`<a class="mhgo${MARK[it.id]?' on':''}" data-act="mhdl" href="${esc(d1.url)}" target="_blank" rel="noopener" download><span>↓</span>СКАЧАТЬ MASTERHUB</a>`:''}
  <div class="mhr"><button class="mhc" data-act="mhcopy" data-k="copy">ПРОМПТ · WINDOWS</button><button class="mhc" data-act="mhcopy" data-k="copy2">ПРОМПТ · MAC</button></div>
- ${d1&&d2?`<div class="mhl2">Скачается для ${esc(d1.label)} · <a class="mhl" data-act="mhdl" href="${esc(d2.url)}" target="_blank" rel="noopener" download>для ${esc(d2.label)} — здесь ↓</a></div>`:''}${it.url?`<div class="mhl2"><a class="mhl" data-act="mhgh" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.urlLabel||'GitHub')} ↗</a></div>`:''}<span class="copied" aria-live="polite"></span></div></div>`}
+ ${d1&&d2?`<div class="mhl2"><a class="mhl" data-act="mhdl" href="${esc(d2.url)}" target="_blank" rel="noopener" download>Архив для ${esc(d2.label)} ↓</a></div>`:''}${it.url?`<div class="mhl2"><a class="mhl" data-act="mhgh" href="${esc(it.url)}" target="_blank" rel="noopener">${esc(it.urlLabel||'GitHub')} ↗</a></div>`:''}<span class="copied" aria-live="polite"></span></div></div>`}
 const PODS=[];
 function counterHTML(g){const m=g.items.filter(i=>MARK[i.id]).length;if(!g.counter)return'';return `${esc(g.counter)} <b>${m}</b> / ${g.items.length}`}
 function build(){
@@ -1302,10 +1357,10 @@ function idleHTML(){return `<div class="idle"><div class="term">&gt; пульт 
  <div class="hint sm">Нажмите кнопку на пульте — здесь появится, <b>что это, как поставить и куда ведёт</b>. Отмечайте, что уже сделали: браузер запомнит.</div>
  <div class="hint sm">Хочется отвлечься — кнопка <b>ИГРЫ</b> вверху и <b>МЕМЫ</b> рядом. <b>Esc</b> — назад к пульту.</div></div>`}
 // маршрут по пульту: с чего начать и куда дальше (тексты — из описаний самих разделов)
-const ROUTE=[{id:'claude-desktop',pod:'pod_start',t:'Начало',s:'поставьте Claude и выключите одну галочку'},
- {id:'masterhub',pod:'pod_masterhub',t:'MasterHub',s:'все навыки Алексея одним архивом'},
- {id:'google-workspace',pod:'pod_features',t:'Возможности Claude',s:'подключения, команды и работа с телефона'},
- {id:'hard-task',pod:'pod_soon',t:'Задания посложнее',s:'по желанию: шесть вариантов на выбор'}];
+const ROUTE=[{id:'claude-desktop',pod:'pod_start',t:'Начало',s:''},
+ {id:'masterhub',pod:'pod_masterhub',t:'Все навыки одним набором (MasterHub)',s:''},
+ {id:'google-workspace',pod:'pod_features',t:'Возможности Claude',s:''},
+ {id:'hard-task',pod:'pod_soon',t:'Задания посложнее',s:''}];
 function select(id){
   const it=ITEMS[id];if(!it)return;selId=id;$('#glossBtn').classList.remove('act');
   $$('.ctl.sel').forEach(e=>e.classList.remove('sel'));const el=$(`.ctl[data-id="${CSS.escape(id)}"]`);if(el){void el.offsetWidth;el.classList.add('sel')}
@@ -2148,8 +2203,10 @@ $('#glossBtn').hidden=!GLOSS.length;$('#glossBtn').onclick=()=>{if(mode!=='curso
 lessonsHead();drawDeco();build();threadMarks();footerIdle();fxStart();$('#card').innerHTML=idleHTML();fit();
 window.__console={THREADS,SLOTS,GROUPS,ITEMS,setMode,get mode(){return mode},get game(){return game},KEY,PODS};
 /*NOV>*/
-/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2) =================
-   Кнопка «Режим новичка» ⇄ «Полный пульт». На экране — один шаг крупно: «Шаг N из 3», что это, что сделать, одна главная кнопка, «Готово — дальше →».
+/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2 · 14.11, v3) =================
+   Кнопка «Режим новичка» ⇄ «Полный пульт». v3: кнопка — оранжевая плашка, на ней стоит оранжевый Claude, машет и зовёт «Эй, эй!».
+   На экране — один шаг крупно: название, одна строка зачем, три действия «ролик + строка», у нужного действия — его кнопка, «Готово — дальше →».
+   Ролики — console/novice/<имя>.mp4 (+ .jpg — первый кадр; при «Эффекты: выкл» показывается только он). Опись — clips_inventory_v3.md.
    После шага 3 — «Готово! Всё главное сделано» и «Хотите больше?»: MasterHub и Skills, Коннекторы.
    Браузер помнит режим и шаг (ключ compass_novice: {"on":1,"step":0..3}). «Готово — дальше» ставит отметку «сделано» — общую с полным пультом.
    Тексты и ссылки — из content.json (те же ITEMS). ?novice=1 / ?novice=0 — включить / выключить сразу. */
@@ -2160,11 +2217,14 @@ const first=t=>{t=String(t||'').replace(/\*\*/g,'');const m=/^[^:.!?]+[.!?]?/.ex
 const plain=t=>String(t||'').replace(/\*\*/g,'');
 // три шага; фразы — из описания пункта (у домашнего задания — первая фраза и срок)
 const STEPS=[
- {id:'claude-desktop',h:'Установка',say:it=>[plain(it.what)]},
- {id:'privacy',h:'Конфиденциальность',say:it=>[plain(it.what)]},
- {id:'homework',h:'Домашнее задание',say:it=>[first(it.what),dueOf(it)?'Срок — '+dueOf(it)+'.':''].filter(Boolean)}
+ {id:'claude-desktop',h:'Установка',say:it=>[plain(it.what)],clips:['install_1_download','install_2_login','install_3_code_folder'],at:0},
+ {id:'privacy',h:'Конфиденциальность',say:it=>[plain(it.what)],clips:['privacy_1_open','privacy_2_section','privacy_3_toggle'],at:0},
+ {id:'homework',h:'Домашнее задание',say:it=>[first(it.what),dueOf(it)?'Срок — '+dueOf(it)+'.':''].filter(Boolean),clips:['homework_1_open','homework_2_paste','homework_3_allow'],at:1}
 ].filter(s=>ITEMS[s.id]);
-const MORE=[{k:'mh',id:'masterhub',h:'MasterHub и Skills'},{k:'cn',id:'google-workspace',h:'Коннекторы'}].filter(m=>ITEMS[m.id]);
+const MORE=[{k:'mh',id:'masterhub',h:'MasterHub и Skills'},{k:'cn',id:'google-workspace',h:'Коннекторы',clip:'connectors'}].filter(m=>ITEMS[m.id]);
+// ролик действия: по кругу, без звука; при «Эффекты: выкл» и «меньше движения» — первый кадр
+const still=()=>document.body.classList.contains('fxoff')||matchMedia('(prefers-reduced-motion: reduce)').matches;
+const clip=n=>n?(still()?`<img class="nclip" src="novice/${n}.jpg" alt="" aria-hidden="true">`:`<video class="nclip" src="novice/${n}.mp4" poster="novice/${n}.jpg" muted loop playsinline autoplay preload="auto" aria-hidden="true"></video>`):'';
 const N=STEPS.length,DONE=N;
 let ST={on:0,step:null},view=null; // view: null — шаг; 'mh' | 'cn' — блок из «Хотите больше?»
 try{const v=JSON.parse(localStorage.getItem(NK)||'null');if(v&&typeof v==='object')ST={on:v.on?1:0,step:Number.isInteger(v.step)&&v.step>=0&&v.step<=DONE?v.step:null}}catch(e){}
@@ -2185,11 +2245,10 @@ function progress(){
   return `<nav class="npg" aria-label="Шаги"><button class="nbk" type="button" data-nv="back"${ST.step===0&&!view?' disabled':''}>← Назад</button><ol>`+
    STEPS.map((s,i)=>`<li class="${i===ST.step&&!view?'nvnow':''}${MARK[s.id]?' nvok':''}"><button type="button" data-go="${i}" aria-current="${i===ST.step&&!view?'step':'false'}"><b>${MARK[s.id]?'✓':i+1}</b><span>${esc(s.h)}</span></button></li>`).join('<i aria-hidden="true"></i>')+
    `<i aria-hidden="true"></i><li class="${ST.step===DONE?'nvnow':''}${STEPS.every(s=>MARK[s.id])?' nvok':''}"><button type="button" data-go="${DONE}"><b>★</b><span>Готово</span></button></li></ol></nav>`}
-function stepHTML(i){const s=STEPS[i],it=ITEMS[s.id],a=mainAct(it);
-  return `<section class="ncard" aria-live="polite"><div class="nk">Шаг ${i+1} из ${N}</div><h2>${esc(s.h)}</h2>`+
-   s.say(it).map(p=>`<p class="nw">${esc(p)}</p>`).join('')+
-   (it.steps.length?`<ol class="nst">${it.steps.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>`:'')+
-   `<div class="nacts">${a.main}${a.sub?`<div class="nsub">${a.sub}</div>`:''}<span class="copied" aria-live="polite"></span></div>`+
+function stepHTML(i){const s=STEPS[i],it=ITEMS[s.id],a=mainAct(it),acts=`<div class="nacts">${a.main}${a.sub?`<div class="nsub">${a.sub}</div>`:''}<span class="copied" aria-live="polite"></span></div>`;
+  return `<section class="ncard nstep" aria-live="polite"><h2>${esc(s.h)}${s.id==='homework'&&dueOf(it)?`<em class="ndue">${esc(dueOf(it))}</em>`:''}</h2>`+
+   `<ol class="ncols">${it.steps.slice(0,3).map((t,k)=>`<li><div class="nvid">${clip(s.clips[k])}<b>${k+1}</b></div><p>${esc(t)}</p>${k===s.at?acts:''}</li>`).join('')}</ol>`+
+   (it.steps.length?'':acts)+
    `<button class="nnext" type="button" data-nv="next">${MARK[s.id]?'Сделано ✓ — дальше →':'Готово — дальше →'}</button></section>`}
 function doneHTML(){const all=STEPS.every(s=>MARK[s.id]);
   return `<section class="ncard nfin" aria-live="polite">${window.Claudes&&Claudes.sprite?'<canvas class="nclaude" aria-hidden="true"></canvas>':'<div class="nstar" aria-hidden="true">★</div>'}<h2>${all?'Готово! Всё главное сделано':'Почти готово'}</h2>`+
@@ -2197,8 +2256,8 @@ function doneHTML(){const all=STEPS.every(s=>MARK[s.id]);
    `<div class="nmore"><span>Хотите больше?</span>${MORE.map(m=>`<button class="nmb" type="button" data-more="${m.k}">${esc(m.h)} →</button>`).join('')}</div></section>`}
 function moreHTML(k){const m=MORE.find(x=>x.k===k),it=ITEMS[m.id],a=mainAct(it),g=it.g;
   const sk=it.id==='masterhub'?g.items.filter(x=>x.id!=='masterhub'):[];
-  return `<section class="ncard nx" aria-live="polite"><div class="nk">Ещё · ${esc(m.h)}</div><h2>${esc(it.title)}</h2><div class="nbd">`+
-   (it.what?`<p class="nw">${rich(it.what)}</p>`:'')+
+  return `<section class="ncard nx${m.clip?' nxv':''}" aria-live="polite"><h2>${esc(it.title)}</h2>${m.clip?`<div class="nvid nxclip">${clip(m.clip)}</div>`:''}<div class="nbd">`+
+   
    (it.steps.length?`<ol class="nst">${it.steps.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>`:'')+
    (sk.length?`<div class="nsk">${sk.map(x=>`<span>${x.label?`<b>${esc(x.name)}</b> — ${esc(x.label)}`:esc(x.name)}</span>`).join('')}</div>`:'')+
    `</div><div class="nacts">${a.main}${a.sub?`<div class="nsub">${a.sub}</div>`:''}<span class="copied" aria-live="polite"></span></div>`+
@@ -2209,43 +2268,34 @@ function render(){
   box.innerHTML=progress()+(view?moreHTML(view):ST.step<DONE?stepHTML(ST.step):doneHTML());
   const c=box.querySelector('.ncard');c.classList.remove('dense');if(c.scrollHeight>c.clientHeight+1)c.classList.add('dense');
   joy(box.querySelector('.nclaude'))}
-// экран «Готово»: тот же пиксельный Claude, что бегает по пульту (спрайт claudes.js), но «как в гифке» (Алексей: «мне нравится, как выглядит Claude именно в GIF-формате… неидеально оранжевые»):
-// спрайт уменьшается, как при съёмке гифки (2 px на клетку → ×0,83 со сглаживанием), и каждый пиксель ложится в палитру той гифки (102 цвета, оранжевого в ней нет) как при съёмке той гифки.
-// Радуется — подпрыгивает, руки вверх; коротко и раз в несколько секунд.
-const GIFPAL='f4f1e1,cfdfb1,cdd191,bdcb4f,c1cd4c,b5cf9a,c7c4ab,b7c44f,b2c04e,c0b59c,aeb85a,acb286,acba48,acb848,acb846,a3bd6f,a8b64a,a8b15d,97ab63,a79b6e,919856,838e5b,7e8834,967452,767949,6c733a,696753,597450,5f6932,60624e,52603f,575752,545925,4c5228,385559,62402c,4a4636,454a21,443e33,3d4232,393d18,37382b,372a21,2b363a,2d3114,282927,252910,232222,212118,21240e,211d0c,162526,191b0f,171917,17190a,161909,131515,15160e,151709,14160a,131508,111313,11120d,121309,121307,101107,0f1106,1a0c0a,0f0f08,0e0f06,0e0e0b,0d0e05,0d0b02,0c0e08,0c0e05,0c0d04,0c0c09,0b0c0a,0a0908,0a0b04,090803,070709,060705,060704,040404,080903,080803,060803,050503,060602,040502,050601,040401,010510,030303,010102,030401,020300,020100,080001,000008,000000'.split(',').map(h=>[0,2,4].map(i=>parseInt(h.substr(i,2),16)));
-// как снималась гифка: Claude 2 пикселя на клетку (снимок в половину размера) → уменьшение Lanczos ×5/6 (как PIL) → ближайший цвет палитры, без дизеринга (в гифке его нет — проверено по пикселям)
-const GLOOK=new Map(),CELLS=18,ROWS=12,K=2*5/6,PADC=2; // K — пикселей гифки на клетку Claude
-function lanczos(x){if(x===0)return 1;if(x<=-3||x>=3)return 0;const a=Math.PI*x;return 3*Math.sin(a)*Math.sin(a/3)/(a*a)}
-function resample(src,w,h,W,H){ // по осям: сначала ширина, потом высота (как Image.resize(LANCZOS))
-  const pass=(inp,iw,ih,ow,oh,horiz)=>{const out=new Float32Array(ow*oh*3),n=horiz?iw:ih,m=horiz?ow:oh,si=n/m,sup=3*Math.max(si,1),ss=Math.max(si,1);
-    for(let o=0;o<m;o++){const c=(o+.5)*si,a=Math.max(0,Math.floor(c-sup)),b=Math.min(n,Math.ceil(c+sup));const wt=[];let tot=0;for(let i=a;i<b;i++){const v=lanczos((i-c+.5)/ss);wt.push(v);tot+=v}
-      for(let q=0;q<(horiz?oh:ow);q++)for(let ch=0;ch<3;ch++){let acc=0;for(let i=a;i<b;i++){const k=horiz?(q*iw+i)*3+ch:(i*iw+q)*3+ch;acc+=inp[k]*wt[i-a]}
-        const v=Math.max(0,Math.min(255,Math.round(acc/tot)));out[horiz?(q*ow+o)*3+ch:(o*ow+q)*3+ch]=v}}return out};
-  const t=pass(src,w,h,W,h,true);return pass(t,W,h,W,H,false)}
-function gifLook(o){const key=[o.arms|0,o.eyes|0,o.leg|0,o.look|0,o.blink|0].join();let c=GLOOK.get(key);if(c)return c;
-  const sp=Claudes.sprite(1,o);
-  const big=document.createElement('canvas');big.width=(CELLS+2*PADC)*2;big.height=(ROWS+2*PADC)*2;const b=big.getContext('2d');
-  b.fillStyle='#050505';b.fillRect(0,0,big.width,big.height);b.imageSmoothingEnabled=false;b.drawImage(sp,0,0,sp.width,sp.height,PADC*2,PADC*2,CELLS*2,ROWS*2);
-  const bd=b.getImageData(0,0,big.width,big.height).data,src=new Float32Array(big.width*big.height*3);for(let i=0,j=0;i<bd.length;i+=4,j+=3){src[j]=bd[i];src[j+1]=bd[i+1];src[j+2]=bd[i+2]}
-  c=document.createElement('canvas');c.width=Math.round(big.width*5/6);c.height=Math.round(big.height*5/6);const x=c.getContext('2d');
-  const r=resample(src,big.width,big.height,c.width,c.height),im=x.createImageData(c.width,c.height),d=im.data;
-  for(let j=0,i=0;j<r.length;j+=3,i+=4){if(r[j]+r[j+1]+r[j+2]<45){d[i]=d[i+1]=d[i+2]=5;d[i+3]=255;continue} // тёмное — ровно фон карточки
-    let best=0,be=1e9;for(let n=0;n<GIFPAL.length;n++){const p=GIFPAL[n],dr=r[j]-p[0],dg=r[j+1]-p[1],db=r[j+2]-p[2],e=dr*dr+dg*dg+db*db;if(e<be){be=e;best=n}}
-    const p=GIFPAL[best];d[i]=p[0];d[i+1]=p[1];d[i+2]=p[2];d[i+3]=255}
-  x.putImageData(im,0,0);GLOOK.set(key,c);return c}
+// Claude — тот же пиксельный спрайт, что бегает по пульту (claudes.js), в родных оранжевых цветах, без перекраски (v3: Алексей, 13.11 21:22 — «вернуть оранжевого обычного Клода, где он радуется»).
+// Рисуется по клеткам: 18 × 10 клеток, U пикселей на клетку, сверху запас на прыжок.
+const CW=18,CH=10;
+function crab(cv,U,o,dy,UP){const g=cv.getContext('2d');g.clearRect(0,0,cv.width,cv.height);if(!window.Claudes||!Claudes.sprite)return;
+  const sp=Claudes.sprite(1,o);g.imageSmoothingEnabled=false;g.drawImage(sp,0,0,sp.width,sp.height,0,UP-dy,CW*U,CH*U)}
+function crabCanvas(cv,U,UP){cv.width=CW*U;cv.height=CH*U+UP;cv.style.width=cv.width+'px';cv.style.height=cv.height+'px'}
+// экран «Готово!»: Claude радуется — подпрыгивает, руки вверх, глаза «^ ^»; коротко и раз в несколько секунд
 let joyRaf=0;
-function joy(cv){cancelAnimationFrame(joyRaf);if(!cv)return;const U=8,g=cv.getContext('2d'),UP=3; // UP — запас сверху на прыжок, в пикселях гифки
-  const W0=Math.round((CELLS+2*PADC)*2*5/6),H0=Math.round((ROWS+2*PADC)*2*5/6)+UP;
-  cv.width=W0;cv.height=H0;const sc=U/K;cv.style.width=(W0*sc)+'px';cv.style.height=(H0*sc)+'px';cv.style.margin=`${-PADC*U}px 0 ${-PADC*U}px`;
-  const draw=(o,dy)=>{const im=gifLook(o);g.fillStyle='#050505';g.fillRect(0,0,W0,H0);g.drawImage(im,0,UP-dy)};
-  const still=()=>document.body.classList.contains('fxoff')||matchMedia('(prefers-reduced-motion: reduce)').matches;
-  draw({arms:1,eyes:2},0);if(still())return;
+function joy(cv){cancelAnimationFrame(joyRaf);if(!cv)return;const U=9,UP=U*2;crabCanvas(cv,U,UP);
+  crab(cv,U,{arms:1,eyes:2},0,UP);if(still())return;
   const t0=performance.now(),CYC=3600;
-  const loop=now=>{if(!cv.isConnected||!document.body.classList.contains('nov'))return;const t=(now-t0)%CYC;
-    if(t<1300){const hop=t>150&&t<1150&&((t/170|0)%2===0)?UP:0;draw({arms:1,eyes:2,leg:(t/170|0)%2},hop)}
-    else if(t>2900&&t<3050)draw({blink:1},0);else draw({look:t>2000&&t<2600?1:0},0);
+  const loop=now=>{if(!cv.isConnected||!document.body.classList.contains('nov'))return;const t=(now-t0)%CYC,k=(t/170|0);
+    if(t<1300){crab(cv,U,{arms:k%2?1:(k%4?2:3),eyes:2,leg:k%2},t>150&&t<1150&&k%2===0?UP:0,UP)}
+    else if(t>2900&&t<3050)crab(cv,U,{blink:1},0,UP);else crab(cv,U,{look:t>2000&&t<2600?1:0,arms:t<1700?1:0,eyes:t<1700?2:0},0,UP);
     joyRaf=requestAnimationFrame(loop)};
   joyRaf=requestAnimationFrame(loop)}
+// кнопка «Режим новичка» в полном пульте: Claude стоит на плашке, машет правой рукой в сторону надписи и зовёт «Эй, эй!» (Алексей, 14.11: «будет махать… «Эй, эй!»… стоять на этой плашке… кликни-кликни»)
+let heyT=0;
+// 14.11 01:42 (Алексей: «он должен быть анимированный, а не статично»): Claude живой всё время — дышит и покачивается, машет и зовёт 2,5 с из каждых 3,5 с;
+// во время тура тоже двигается. Замирает только в режиме новичка (кнопка «← Полный пульт») и при «Эффекты: выкл» / «меньше движения» в системе.
+function hey(){clearTimeout(heyT);const cv=btn.querySelector(".novc");if(!cv)return;const U=5,UP=4;if(cv.width!==CW*U)crabCanvas(cv,U,UP);
+  const off=ST.on||document.body.classList.contains('m');
+  if(!window.Claudes){heyT=setTimeout(hey,300);return}
+  if(off||still()){btn.classList.remove('hey');crab(cv,U,{arms:2,eyes:2},0,UP);if(!off)heyT=setTimeout(hey,1000);return}
+  const t=performance.now()%3500,k=(t/200|0);
+  if(t<2500){btn.classList.add('hey');crab(cv,U,{arms:k%2?2:0,eyes:2,leg:k%2},k%2?UP:0,UP)}
+  else{btn.classList.remove('hey');const q=((t-2500)/250|0);crab(cv,U,t>3150&&t<3300?{blink:1,leg:q%2}:{look:q%2,leg:q%2},q%2?2:0,UP)}
+  heyT=setTimeout(hey,document.hidden?1000:100)}
 function go(i,focusSel){ST.step=Math.max(0,Math.min(DONE,i));view=null;save();render();beep(620,.04);
   const f=box.querySelector(focusSel||'.nmain, .nmb, .nnext');if(f)f.focus({preventScroll:true})}
 function apply(on,saveIt){ST.on=on?1:0;if(saveIt)save();
@@ -2253,8 +2303,8 @@ function apply(on,saveIt){ST.on=on?1:0;if(saveIt)save();
     // тур для полного пульта мог всплыть сам в первую секунду — в режиме новичка его нет
     setTimeout(()=>{if(ST.on&&window.__tour&&__tour.step>=0)__tour.end()},1000)}
   document.body.classList.toggle('nov',!!on);
-  btn.innerHTML=on?'<b>←</b>ПОЛНЫЙ ПУЛЬТ':'<b>☺</b>РЕЖИМ НОВИЧКА<small>всё по шагам, крупно</small>';
-  btn.setAttribute('aria-pressed',!!on);btn.title=on?'Вернуть полный пульт':'Режим новичка: по одному шагу, крупно'}
+  btn.innerHTML=on?'<b>←</b>ПОЛНЫЙ ПУЛЬТ':'<canvas class="novc" aria-hidden="true"></canvas><i class="novhey" aria-hidden="true">Эй, эй!</i>Режим новичка';
+  btn.classList.toggle('novfull',!on);btn.setAttribute('aria-pressed',!!on);btn.title=on?'Вернуть полный пульт':'Режим новичка';hey()}
 btn.onclick=e=>{e.stopPropagation();apply(!ST.on,true);beep(ST.on?700:480,.05);btn.focus({preventScroll:true})};
 box.addEventListener('click',e=>{
   const t=e.target.closest('[data-nv],[data-go],[data-more]');if(!t)return;
@@ -2264,6 +2314,9 @@ box.addEventListener('click',e=>{
   if(a==='next'){const s=STEPS[ST.step];if(s&&!MARK[s.id])setMark(s.id,true);go(ST.step+1)}
   else if(a==='back'){if(view){view=null;render()}else go(ST.step-1)}
   else if(a==='fin'){view=null;go(DONE)}});
+// «Эффекты: вкл/выкл» и тур: ролики ↔ первые кадры, Claude на кнопке замирает или машет
+new MutationObserver(()=>{const k=still()+'|'+document.body.classList.contains('tour');if(k===moKey)return;moKey=k;if(ST.on)render();hey()}).observe(document.body,{attributes:true,attributeFilter:['class']});
+let moKey=still()+'|'+document.body.classList.contains('tour');
 const q=new URLSearchParams(location.search).get('novice');
 apply(q==='1'?1:q==='0'?0:ST.on,q==='1'||q==='0');
 // Claude (claudes.js) подключается после этого кода — экран «Готово» перерисовать, когда страница собрана
@@ -2272,7 +2325,7 @@ return{apply,go,get on(){return!!ST.on},get step(){return ST.step},get view(){re
 window.__novice=NOVICE;
 /*<NOV*/
 /*TOUR>*/
-/* ================= TOUR · обучение по блокам (13.11) =================
+/* ================= TOUR · обучение по блокам (13.11; 14.11 — шаг 1 на кнопке «Режим новичка», строки «Вы здесь впервые?» больше нет) =================
    Сам — при первом входе (ключ compass_tour). Кто уже заходил (есть свои ключи compass_*) — не всплывает: кнопка «Как пользоваться пультом» горит зелёным.
    ?tour=1 — открыть сразу (для проверки). Esc — закрыть, ← → — шаги. */
 const TOUR=(()=>{
@@ -2281,7 +2334,7 @@ const tb=$('#tourBtn');
 const txt=s=>{const e=$(s);return e?e.textContent.replace(/\s+/g,' ').trim():''};
 const hwDue=txt('#nb .st.hw em').toLowerCase();
 const STEPS=[
- {t:[['#nb .q','#nb .rest']],h:'Вы здесь впервые? Начните с этой строки',p:'Три шага по порядку: поставить приложение Claude, выключить одну галочку в настройках, сделать домашнее задание.',k:'#nb [data-to="claude-desktop"]',kn:()=>'«1 Приложение Claude» — с неё начинается всё остальное.'},
+ {t:['#novBtn'],h:'Вы здесь впервые? Начните с режима новичка',p:'Три главных шага по одному на экране: поставить приложение Claude, выключить одну галочку в настройках, сделать домашнее задание. У каждого действия — короткий ролик. Обратно — кнопка «Полный пульт».',k:'#novBtn',kn:()=>'«Режим новичка».'},
  {t:['#pod_start'],h:'Начало',p:'Те же три шага, только крупно. Нажмите строку — в центре экрана появится, что сделать, по шагам.',k:'#pod_start [data-id="claude-desktop"]',kn:()=>'«Приложение Claude» — всё с этого пульта делается в нём.'},
  {t:['#pod_start .fd.hw'],h:'Домашнее задание'+(hwDue?' — '+hwDue:''),p:'Три задания на своём компьютере, Claude ведёт по каждому сам. Нажмите строку — в центре появятся архив и текст для Claude.',kn:()=>'вся строка «Домашнее задание».'},
  {t:['#pod_masterhub'],h:'MasterHub — все навыки Алексея одним архивом',p:'Главный чат принимает ваши задачи и раздаёт их агентам. Кнопки «Промпт» копируют текст: вставьте его в Claude, и он поставит набор сам.',k:'#pod_masterhub .mhgo',kn:()=>'«Скачать MasterHub».'},
