@@ -313,6 +313,20 @@ body.mapon.desk #mapHint{display:block}
 body.bigmap #bigmap{display:block}
 body.menu #bigmap,body.menu #mapHint{display:none!important}
 body.bigmap #radio{visibility:hidden}
+
+/* ===== v7: звук N, плашка рекорда ===== */
+#sndHint{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:calc(60px + var(--mm) + 36px);width:var(--mm);box-sizing:border-box;z-index:5;pointer-events:none;display:none;
+  background:#000;border:1px solid #3c4519;padding:3px 8px;font:400 18px/1 'VT323',monospace;color:#8c983b;text-align:center}
+#sndHint b{display:inline-block;color:#000;background:#E6F59C;padding:1px 6px;margin-right:6px;font-weight:400}
+#sndHint i{font-style:normal}#sndHint.on i{color:#E6F59C}
+body.desk #sndHint{display:block}
+body.desk:not(.mapon) #sndHint,body.desk.menu #sndHint{top:60px}
+body.bigmap #sndHint{display:none}
+#msg{bottom:auto!important;top:calc(60px + 7vh)!important;height:auto!important}   /* подсказки — над оружием, под верхним краем (правка штаба 13.11) */
+.rec7{display:flex;gap:16px;align-items:center;margin:4px 0 14px}
+.rec7 img{width:min(400px,46vw);height:auto;border:2px solid #ACB948;image-rendering:auto;display:block}
+.rec7b{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.rec7b small{font:400 18px/1.1 'VT323',monospace;color:#8c983b}
 </style>
 </head>
 <body class="menu">
@@ -347,7 +361,7 @@ body.bigmap #radio{visibility:hidden}
   <div id="boss"><span id="bossName">Надзиратель</span><div class="bar"><i id="bossFill"></i></div><div class="b2"><span id="bossName2"></span><div class="bar"><i id="bossFill2"></i></div></div></div>
   <div id="obj"></div>
   <div id="radio"><canvas id="rPort" width="64" height="64"></canvas><div><b id="rWho"></b><p id="rText"></p></div></div>
-  <canvas id="mini" width="480" height="480"></canvas><div id="mapHint"><b>M</b> вся карта</div><canvas id="bigmap" width="1200" height="1200"></canvas>
+  <canvas id="mini" width="480" height="480"></canvas><div id="mapHint"><b>M</b> вся карта</div><div id="sndHint"><b>N</b> звук: <i>выкл</i></div><canvas id="bigmap" width="1200" height="1200"></canvas>
   <div id="sbar">
     <div class="sbx hv" id="hvHp"><span class="hl">Жизнь</span><b id="sbHp">100</b><div class="seg" id="segHp"></div></div>
     <div class="sbx hv" id="hvAr"><span class="hl">Броня</span><b id="sbAr">0</b><div class="seg" id="segAr"></div></div>
@@ -2632,7 +2646,7 @@ function initAudio(){
   try{
     if(!AC){
       AC=new (window.AudioContext||window.webkitAudioContext)();
-      master=AC.createGain();master.gain.value=0.6;master.connect(AC.destination);
+      master=AC.createGain();master.gain.value=0.6;snd7Bus();
       sfxGain=AC.createGain();sfxGain.connect(master);musGain=AC.createGain();musGain.connect(master);
       nbuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=nbuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
       applyAudio();
@@ -2641,9 +2655,9 @@ function initAudio(){
     musStart();
   }catch(e){AC=null;}
 }
-function applyAudio(){if(!AC)return;sfxGain.gain.value=SET.sfx?1:0;musGain.gain.value=SET.music?0.5:0;}
+function applyAudio(){if(!AC)return;master.gain.value=SND7?0.6:0;sfxGain.gain.value=SET.sfx?1:0;musGain.gain.value=SET.music?0.3:0;}
 function tone(type,f0,f1,dur,vol,delay){
-  if(!AC||!SET.sfx||vol<0.005)return;
+  if(!AC||!SET.sfx||!SND7||vol<0.005)return;
   const t=AC.currentTime+(delay||0),o=AC.createOscillator(),g=AC.createGain();
   o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,f1),t+dur);
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
@@ -2655,60 +2669,95 @@ function noiseAt(t,dur,vol,freq,q,type,dest){
   g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   s.connect(f);f.connect(g);g.connect(dest);s.start(t,Math.random()*0.5);s.stop(t+dur+0.05);
 }
-function hiss(dur,vol,freq,q,type,delay){if(!AC||!SET.sfx||vol<0.005)return;noiseAt(AC.currentTime+(delay||0),dur,vol,freq,q,type,sfxGain);}
+function hiss(dur,vol,freq,q,type,delay){if(!AC||!SET.sfx||!SND7||vol<0.005)return;noiseAt(AC.currentTime+(delay||0),dur,vol,freq,q,type,sfxGain);}
+/* ===== v7 (13.11): звук — ретро-сай-фай синтезом в коде, по образцу sound_rec.js пульта =====
+   Мягкая шина: срез верхов (без режущих писков), короткое «космическое» эхо, ограничитель. Тихо.
+   По умолчанию выключен; N — включить и выключить (M занята картой). Те же имена звуков, что в игре. */
+let SND7=false,BUS7=null;
+function snd7Bus(){if(BUS7||!AC)return;
+  const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=4400;lp.Q.value=.5;
+  const hp=AC.createBiquadFilter();hp.type='highpass';hp.frequency.value=60;
+  const dl=AC.createDelay(.6);dl.delayTime.value=.14;const fb=AC.createGain();fb.gain.value=.24;const wet=AC.createGain();wet.gain.value=.2;
+  const comp=AC.createDynamicsCompressor();comp.threshold.value=-20;comp.knee.value=12;comp.ratio.value=5;const out=AC.createGain();out.gain.value=.85;
+  master.connect(hp);hp.connect(lp);lp.connect(comp);lp.connect(dl);dl.connect(fb);fb.connect(dl);dl.connect(wet);wet.connect(comp);comp.connect(out);out.connect(AC.destination);BUS7=out;}
+// голос: квадрат / треугольник / пила; скольжение, арпеджио, вибрато; k — громкость по расстоянию
+function t7(o){if(!AC||!SET.sfx||!SND7)return;const v=(o.v||.05)*(o.k===undefined?1:o.k)*(o.type==='triangle'||o.type==='sine'?1.6:1);if(v<.002)return;
+  const t=AC.currentTime+(o.at||0),os=AC.createOscillator(),g=AC.createGain();os.type=o.type||'square';os.frequency.setValueAtTime(o.f,t);
+  if(o.arp)o.arp.forEach((r,i)=>os.frequency.setValueAtTime(o.f*r,t+i*o.arpT));else if(o.f2)os.frequency.exponentialRampToValueAtTime(Math.max(20,o.f2),t+o.d);
+  if(o.vib){const l=AC.createOscillator(),lg=AC.createGain();l.frequency.value=o.vib;lg.gain.value=o.vibD||o.f*.03;l.connect(lg);lg.connect(os.frequency);l.start(t);l.stop(t+o.d+.05);}
+  g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(v,t+(o.a||.004));g.gain.setValueAtTime(v,t+(o.a||.004)+(o.h||0));g.gain.exponentialRampToValueAtTime(.0001,t+o.d);
+  os.connect(g);g.connect(sfxGain);os.start(t);os.stop(t+o.d+.05);}
+// шум через фильтр, который «закрывается»: взрывы, шипение, щелчки
+function n7(o){if(!AC||!SET.sfx||!SND7)return;const v=(o.v||.1)*(o.k===undefined?1:o.k);if(v<.002)return;
+  const t=AC.currentTime+(o.at||0),s=AC.createBufferSource(),bf=AC.createBiquadFilter(),g=AC.createGain();bf.type=o.ft||'lowpass';
+  bf.frequency.setValueAtTime(o.f||3000,t);bf.frequency.exponentialRampToValueAtTime(o.f2||200,t+o.d);bf.Q.value=o.q||.8;
+  g.gain.setValueAtTime(v,t);g.gain.exponentialRampToValueAtTime(.0001,t+o.d);s.buffer=nbuf;s.loop=true;s.connect(bf);bf.connect(g);g.connect(sfxGain);s.start(t,Math.random()*.4);s.stop(t+o.d+.02);}
 const SFX={
-  w0(){tone('square',900,160,0.13,0.16);hiss(0.07,0.22,3200,0.8,'bandpass');},
-  w1(){hiss(0.4,0.55,1500,0.5,'lowpass');tone('sawtooth',150,38,0.28,0.28);},
-  w2(){tone('square',560,240,0.05,0.09);hiss(0.04,0.16,4200,1,'bandpass');},
-  w3(){hiss(0.5,0.35,700,0.6,'lowpass');tone('sawtooth',220,60,0.4,0.2);},
-  w4(){tone('square',1400,480,0.09,0.08);tone('sine',700,1300,0.08,0.07);},
-  empty(){tone('square',220,200,0.05,0.1);},
-  eshot(k){tone('sawtooth',560,140,0.22,0.12*k);},
-  dshot(k){tone('square',1300,700,0.08,0.08*k);},
-  bshot(k){tone('sawtooth',260,55,0.45,0.2*k);hiss(0.25,0.2*k,700,1,'lowpass');},
-  bite(k){hiss(0.09,0.3*k,1400,2,'bandpass');tone('square',180,90,0.08,0.1*k);},
-  pain(k){tone('square',340,130,0.1,0.12*k);},
-  die(k){tone('sawtooth',280,32,0.55,0.2*k);hiss(0.35,0.25*k,900,0.7,'lowpass');},
-  alert(k){tone('triangle',170,460,0.2,0.14*k);},
-  hit(){hiss(0.05,0.18,2600,1,'highpass');},
-  hurt(){tone('sine',170,55,0.28,0.45);hiss(0.12,0.22,500,1,'lowpass');},
-  pickup(){tone('square',660,660,0.07,0.1);tone('square',990,990,0.1,0.1,0.07);},
-  weapon(){[330,495,660,880].forEach((f,i)=>tone('square',f,f,0.09,0.12,i*0.08));},
-  swap(){tone('square',260,300,0.05,0.08);},
-  door(k){hiss(0.55,0.22*k,320,1,'lowpass');tone('sawtooth',65,95,0.5,0.06*k);},
-  locked(){tone('square',150,150,0.12,0.14);tone('square',110,110,0.2,0.14,0.14);},
-  exit(){[523,659,784,1046].forEach((f,i)=>tone('square',f,f,0.14,0.1,i*0.1));},
-  death(){tone('sawtooth',320,28,1.3,0.3);hiss(0.9,0.2,400,0.7,'lowpass');},
-  boom(k){hiss(0.9,0.75*k+0.05,380,0.5,'lowpass');tone('sine',120,30,0.7,0.55*k+0.05);},
-  fuse(k){for(let i=0;i<6;i++)tone('square',600+i*130,600+i*130,0.05,0.12*k,i*0.11);},
-  roar(){tone('sawtooth',90,45,1.2,0.3);tone('square',70,40,1.1,0.12);hiss(1,0.2,300,0.6,'lowpass');},
-  charge(k){tone('sine',200,900,0.4,0.14*k);},
-  secret(){[392,523,659,784,1046].forEach((f,i)=>tone('triangle',f,f,0.12,0.13,i*0.07));},
-  sizzle(){hiss(0.2,0.12,5000,0.6,'highpass');},
-  heart(){tone('sine',70,50,0.12,0.35);tone('sine',70,50,0.12,0.28,0.18);},
-  combo(n){const f=440*Math.pow(2,Math.min(n,14)/12);tone('square',f,f,0.06,0.06);},
-  splat(k){hiss(0.3,0.35*k,900,1.5,'bandpass');tone('sine',160,60,0.25,0.25*k);},
-  spit(k){tone('sawtooth',300,700,0.18,0.12*k);hiss(0.15,0.12*k,2400,1,'bandpass');},
-  tail(k){hiss(0.5,0.5*k+0.05,300,0.6,'lowpass');tone('sawtooth',110,35,0.5,0.35*k+0.05);},
-  rumble(k){tone('sine',55,40,0.8,0.25*k+0.05);hiss(0.8,0.12*k,200,0.5,'lowpass');},
-  hissL(k){hiss(0.25,0.2*k,3000,1.5,'bandpass');tone('square',520,260,0.2,0.06*k);},
-  crash(k){hiss(0.8,0.7*k+0.1,250,0.5,'lowpass');tone('square',90,30,0.6,0.3*k+0.05);},
-  radio(){tone('square',1400,1400,0.04,0.05);tone('square',1800,1800,0.04,0.05,0.06);hiss(0.12,0.05,3000,1,'bandpass');},
-  whale(){tone('sine',70,42,3.2,0.35);tone('triangle',110,62,3.6,0.12,0.4);hiss(2.8,0.12,160,0.6,'lowpass');},
-  bark(k){tone('square',420,260,0.09,0.16*k+0.02);tone('square',380,240,0.1,0.14*k+0.02,0.12);hiss(0.08,0.1*k,1600,2,'bandpass');},
-  whimper(){tone('sine',900,500,0.35,0.08);tone('sine',800,450,0.3,0.06,0.3);},
-  yip(){tone('square',700,1100,0.08,0.08);tone('square',900,1300,0.08,0.07,0.1);},
-  w5(){tone('sawtooth',520,90,0.14,0.2);tone('sine',1400,300,0.1,0.12);hiss(0.12,0.12,5000,1,'bandpass');},
-  sacpop(){hiss(0.5,0.4,300,0.6,'lowpass');tone('sawtooth',160,40,0.6,0.25);},
-  overheat(){hiss(0.5,0.25,2400,0.8,'highpass');tone('square',300,120,0.3,0.1);},
-  whisper(k){for(let i=0;i<3;i++)hiss(0.28,0.07*k+0.01,1100+i*650,7,'bandpass',i*0.13);},
-  creak(){tone('sine',180,115,1.3,0.05);tone('triangle',92,70,1.5,0.04);},
-  bang(k){hiss(0.7,0.28*k,170,0.6,'lowpass');tone('sine',58,32,0.7,0.28*k);},
-  drip(){tone('sine',1500,700,0.07,0.05);tone('sine',1100,600,0.06,0.03,0.25);},
-  glitch(){hiss(0.12,0.2,6000,0.5,'highpass');tone('square',80,1600,0.08,0.05);},
-  rubble(k){hiss(0.9,0.6*k+0.05,260,0.5,'lowpass');tone('square',70,30,0.5,0.2*k);},
-  stab(){tone('sine',62,28,1.4,0.6);hiss(0.9,0.45,280,0.6,'lowpass');tone('square',196,188,0.5,0.05);tone('triangle',293,286,0.9,0.05,0.02);hiss(0.12,0.3,2600,3,'bandpass');}
+  // оружие героя
+  w0(){t7({f:1250,f2:470,d:.075,v:.05});t7({f:2600,f2:900,d:.03,type:'triangle',v:.012});n7({ft:'bandpass',f:3200,f2:1400,d:.035,v:.05,q:1.2});},          // Импульсник: «тють»
+  w1(){n7({f:2400,f2:140,d:.34,v:.3});t7({f:170,f2:42,d:.28,type:'triangle',v:.14});t7({f:640,f2:170,d:.08,v:.03});t7({f:1300,f2:600,d:.05,v:.012,at:.03});}, // Веер: тяжёлый хлопок
+  w2(){t7({f:980,f2:430,d:.045,v:.032});n7({ft:'bandpass',f:4200,f2:1600,d:.03,v:.05,q:1.4});},                                          // Шредер: частая дробь
+  w3(){t7({f:230,f2:70,d:.36,type:'sawtooth',v:.04});n7({f:1700,f2:180,d:.45,v:.18});t7({f:95,f2:40,d:.3,type:'triangle',v:.12});},        // Гром: пуск ракеты
+  w4(){t7({f:1500,f2:620,d:.085,type:'triangle',v:.05,vib:42,vibD:120});t7({f:760,f2:1350,d:.06,v:.018});},                                 // Разрядник: «вжик» плазмы
+  w5(){t7({f:540,f2:120,d:.12,type:'sawtooth',v:.035});n7({ft:'bandpass',f:5000,f2:1200,d:.1,v:.07,q:1.5});},                               // турель
+  empty(){t7({f:320,f2:290,d:.05,type:'triangle',v:.04});t7({f:200,d:.04,type:'triangle',v:.03,at:.06});},
+  swap(){t7({f:880,f2:1250,d:.05,type:'triangle',v:.028});t7({f:1250,d:.04,type:'triangle',v:.02,at:.06});},
+  weapon(){t7({f:440,d:.52,v:.04,arp:[1,1.25,1.5,2,2.5,3],arpT:.06,vib:11,vibD:7});},
+  // враги
+  eshot(k){t7({f:760,f2:240,d:.1,type:'sawtooth',v:.026,k});},
+  dshot(k){t7({f:1300,f2:700,d:.07,type:'triangle',v:.035,k});},
+  bshot(k){t7({f:300,f2:60,d:.42,type:'sawtooth',v:.045,k});n7({f:900,f2:120,d:.3,v:.14,k});},
+  bite(k){n7({ft:'bandpass',f:1500,f2:500,d:.08,v:.14,q:2,k});t7({f:230,f2:90,d:.07,v:.04,k});},
+  pain(k){t7({f:430,f2:160,d:.09,v:.04,vib:30,vibD:40,k});},
+  die(k){t7({f:540,f2:60,d:.3,type:'sawtooth',v:.045,k});n7({ft:'bandpass',f:2600,f2:300,d:.24,v:.12,q:1.2,k});t7({f:320,d:.3,type:'triangle',v:.04,arp:[1,.75,.5],arpT:.08,k});},
+  alert(k){t7({f:300,f2:900,d:.14,type:'triangle',v:.045,vib:30,vibD:40,k});},
+  roar(){t7({f:110,d:.9,type:'sawtooth',v:.045,arp:[1,1.06,1,1.06],arpT:.2});n7({f:600,f2:120,d:.7,v:.12});t7({f:55,f2:38,d:1,type:'triangle',v:.1});},
+  charge(k){t7({f:200,f2:900,d:.4,type:'triangle',v:.045,vib:24,vibD:30,k});},
+  splat(k){n7({ft:'bandpass',f:900,f2:300,d:.25,v:.18,q:1.5,k});t7({f:170,f2:60,d:.2,type:'triangle',v:.08,k});},
+  spit(k){t7({f:300,f2:800,d:.15,type:'triangle',v:.04,k});n7({ft:'bandpass',f:2400,f2:900,d:.12,v:.07,q:1,k});},
+  tail(k){n7({f:900,f2:90,d:.5,v:.3,k});t7({f:110,f2:35,d:.5,type:'triangle',v:.12,k});},
+  rumble(k){t7({f:55,f2:40,d:.8,type:'triangle',v:.1,k});n7({f:220,f2:90,d:.8,v:.1,k});},
+  hissL(k){n7({ft:'bandpass',f:3000,f2:1500,d:.25,v:.1,q:1.5,k});t7({f:520,f2:260,d:.2,v:.02,k});},
+  crash(k){n7({f:1300,f2:80,d:.7,v:.3,k});t7({f:90,f2:30,d:.5,type:'triangle',v:.12,k});},
+  bark(k){t7({f:420,f2:260,d:.09,v:.05,k});t7({f:380,f2:240,d:.1,v:.045,at:.12,k});},
+  whimper(){t7({f:900,f2:500,d:.35,type:'triangle',v:.03});t7({f:800,f2:450,d:.3,type:'triangle',v:.025,at:.3});},
+  yip(){t7({f:700,f2:1100,d:.08,type:'triangle',v:.03});t7({f:900,f2:1300,d:.08,type:'triangle',v:.028,at:.1});},
+  sacpop(){n7({f:900,f2:120,d:.5,v:.3});t7({f:160,f2:40,d:.6,type:'sawtooth',v:.04});},
+  whale(){t7({f:70,f2:42,d:3.2,type:'triangle',v:.1,vib:3,vibD:4});t7({f:110,f2:62,d:3.6,type:'triangle',v:.05,at:.4});n7({f:220,f2:120,d:2.8,v:.08});},
+  // герой
+  hit(){t7({f:330,f2:80,d:.09,v:.045});n7({f:2600,f2:500,d:.07,v:.08});},
+  hurt(){t7({f:420,f2:60,d:.36,type:'sawtooth',v:.045,vib:18,vibD:30});n7({f:1500,f2:200,d:.2,v:.11});},
+  death(){t7({f:392,d:1.1,v:.045,arp:[1,.84,.75,.5],arpT:.2,vib:6,vibD:6});n7({f:900,f2:80,d:1,v:.16});t7({f:120,f2:28,d:1.2,type:'triangle',v:.1});},
+  heart(){t7({f:72,f2:50,d:.12,type:'triangle',v:.12});t7({f:72,f2:50,d:.12,type:'triangle',v:.09,at:.18});},
+  sizzle(){n7({ft:'highpass',f:6500,f2:3000,d:.2,v:.07});t7({f:1800,f2:2700,d:.05,type:'triangle',v:.012});t7({f:240,f2:120,d:.12,type:'triangle',v:.03});},
+  // предметы, двери, мир
+  pickup(){t7({f:660,d:.13,v:.045,arp:[1,1.5,2],arpT:.04});},
+  door(k){n7({f:600,f2:120,d:.5,v:.12,k});t7({f:70,f2:115,d:.45,type:'sawtooth',v:.03,k});t7({f:880,d:.05,type:'triangle',v:.02,at:.4,k});},
+  locked(){t7({f:220,d:.24,v:.04,arp:[1,.8],arpT:.11});},
+  exit(){t7({f:523,d:.6,v:.045,arp:[1,1.26,1.5,2,2.52,3],arpT:.08});},
+  secret(){t7({f:523,d:1,v:.045,arp:[1,1.26,1.5,2,1.5,2,2.52,3],arpT:.08});t7({f:262,d:1,type:'triangle',v:.045,arp:[1,1.5,2,1.5],arpT:.22});},
+  boom(k){n7({f:1900,f2:80,d:.55,v:.34,k:(k||0)*.9+.1});t7({f:150,f2:36,d:.45,type:'triangle',v:.16,k:(k||0)*.9+.1});},
+  fuse(k){for(let i=0;i<6;i++)t7({f:1300+i*120,d:.035,type:'triangle',v:.03,at:i*.11,k});},
+  combo(n){t7({f:520*(1+(n||2)*.15),d:.1,v:.04,arp:[1,2],arpT:.035});},
+  radio(){t7({f:1400,d:.04,v:.018});t7({f:1800,d:.04,v:.018,at:.06});n7({ft:'bandpass',f:3000,f2:2400,d:.12,v:.03,q:1});},
+  overheat(){n7({ft:'highpass',f:3000,f2:1200,d:.5,v:.12});t7({f:300,f2:120,d:.3,v:.035});},
+  whisper(k){for(let i=0;i<3;i++)n7({ft:'bandpass',f:1100+i*650,f2:900+i*600,d:.28,v:.06,q:7,at:i*.13,k:(k||0)+.15});},
+  creak(){t7({f:180,f2:115,d:1.3,type:'triangle',v:.03});t7({f:92,f2:70,d:1.5,type:'triangle',v:.025});},
+  bang(k){n7({f:500,f2:90,d:.7,v:.24,k});t7({f:58,f2:32,d:.7,type:'triangle',v:.12,k});},
+  drip(){t7({f:1500,f2:700,d:.07,type:'triangle',v:.025});t7({f:1100,f2:600,d:.06,type:'triangle',v:.015,at:.25});},
+  glitch(){n7({ft:'highpass',f:6000,f2:2000,d:.12,v:.12});t7({f:80,f2:1600,d:.08,v:.03});},
+  rubble(k){n7({f:900,f2:70,d:.9,v:.32,k:(k||0)+.1});t7({f:70,f2:30,d:.5,type:'triangle',v:.1,k});},
+  stab(){t7({f:62,f2:28,d:1.4,type:'triangle',v:.16});n7({f:600,f2:120,d:.9,v:.3});t7({f:196,f2:188,d:.5,v:.03});t7({f:293,f2:286,d:.9,type:'triangle',v:.03,at:.02});},
+  // v7: кислота, искры, очки
+  acid(k){n7({ft:'bandpass',f:1900,f2:600,d:.2,v:.1,q:1.3,k});t7({f:900,f2:300,d:.08,type:'triangle',v:.03,k});t7({f:420,f2:1100,d:.05,type:'triangle',v:.02,at:.09,k});},
+  bubble(k){t7({f:300+Math.random()*200,f2:900,d:.05,type:'triangle',v:.018,k});},
+  wade(){n7({ft:'bandpass',f:900,f2:400,d:.12,v:.05,q:1.2});t7({f:220,f2:520,d:.06,type:'triangle',v:.014});},
+  spark(k){n7({ft:'highpass',f:7000,f2:4000,d:.07,v:.07,k});t7({f:2400,f2:1800,d:.025,v:.01,k});t7({f:2100,f2:1500,d:.025,v:.008,at:.07,k});},
+  kill(n){const f=880*(1+.07*Math.min(n||1,8));t7({f,d:.1,v:.026,arp:[1,1.5],arpT:.04});},
+  on(){t7({f:523,d:.22,v:.04,arp:[1,1.5],arpT:.08});}
 };
+function snd7Toggle(){SND7=!SND7;initAudio();applyAudio();snd7Hint();if(SND7)SFX.on();}
+function snd7Hint(){const e=document.getElementById('sndHint');if(e){e.querySelector('i').textContent=SND7?'вкл':'выкл';e.classList.toggle('on',SND7);}}
 for(const k in SFX){const f=SFX[k],gap=k[0]==='w'?15:45;let lastT=0;SFX[k]=function(){const n=performance.now();if(n-lastT<gap)return;lastT=n;f.apply(null,arguments);};}
 /* procedural soundtrack */
 const MUS={next:0,step:0,bpm:124,root:45,style:0,int:0,tgt:0,timer:null,playing:false};
@@ -2726,7 +2775,7 @@ function musTick(){
   MUS.int+=(MUS.tgt-MUS.int)*0.03;
   const spb=60/MUS.bpm/4;
   if(MUS.next<AC.currentTime-0.2)MUS.next=AC.currentTime+0.05;
-  while(MUS.next<AC.currentTime+0.12){if(SET.music)musStep(MUS.step,MUS.next,spb);MUS.next+=spb;MUS.step=(MUS.step+1)%64;}
+  while(MUS.next<AC.currentTime+0.12){if(SET.music&&SND7)musStep(MUS.step,MUS.next,spb);MUS.next+=spb;MUS.step=(MUS.step+1)%64;}
 }
 function envOsc(type,f,t,dur,vol,f2){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(musGain);o.start(t);o.stop(t+dur+0.05);}
 function mBass(f,t,dur,vol){const o=AC.createOscillator(),fl=AC.createBiquadFilter(),g=AC.createGain();o.type='sawtooth';o.frequency.value=f;fl.type='lowpass';fl.frequency.setValueAtTime(900,t);fl.frequency.exponentialRampToValueAtTime(170,t+dur);fl.Q.value=6;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(fl);fl.connect(g);g.connect(musGain);o.start(t);o.stop(t+dur+0.05);}
@@ -3148,7 +3197,7 @@ function shoot(){
   }
   if(!turretMode)P.ammo[w.ammo]--;P.cool=w.cd/MOD.rof;P.fireAnim=P.cur===2?0.05:0.09;P.fireAlt^=1;if(P.cur===2)P.spin=0.5;
   P.recoil=Math.min(1.6,P.recoil+w.kick);lightBoost=Math.max(lightBoost,0.06);shake=Math.max(shake,w.shake);
-  SFX['w'+P.cur]();
+  SFX['w'+P.cur]();FX7.shot(P.cur);
   for(const e of enemies)if(e.state==='idle'){const d=Math.hypot(e.x-P.x,e.y-P.y);if(d<6||(d<14&&e.los))wake(e);}
   if(w.kind==='hit'){
     let hit=false;
@@ -3176,7 +3225,7 @@ function hitscan(a,dmg,crit,zj){
     if(Math.abs(ex*dy-ey*dx)<EDEF[e.type].rad+(isTouch?0.22:0.1)&&(zs===null||e.type==='titan'||zOK(enemyTex(e),e.scale,e.z,zAt(al),isTouch?0.08:0.04))){best=e;bd=al;bb=null;}}
   if(best){const d=EDEF[best.type];damageEnemy(best,dmg,{src:'p',crit});puff(best.x-dx*0.3,best.y-dy*0.3,zs===null?best.z+d.scale*0.45-0.1:clamp(zAt(bd)-0.11,-0.1,2),SPR.puffO);hitMarkT=0.12;critMark=crit;return true;}
   if(bb&&bb.kind==='barrel')damageBarrel(bb,dmg);
-  if(bd<60)puff(P.x+dx*(bd-0.05),P.y+dy*(bd-0.05),zs===null?0.3+R(-0.08,0.08):clamp(zAt(bd)-0.11,-0.08,0.9),SPR.puffY);
+  if(bd<60){const ix=P.x+dx*(bd-0.05),iy=P.y+dy*(bd-0.05),iz=zs===null?0.3+R(-0.08,0.08):clamp(zAt(bd)-0.11,-0.08,0.9);puff(ix,iy,iz,SPR.puffY);FX7.impact(ix,iy,iz,-dx,-dy);}
   return false;
 }
 function puff(x,y,z,t){fx.push({x,y,z,kind:'puff',t:0.14,tex:t,scale:0.22,bright:true});}
@@ -3187,7 +3236,7 @@ function explodeBarrel(b){
   explode(b.x,b.y,2.2,85,'barrel');
 }
 function explode(x,y,rad,dmg,owner){
-  fx.push({x,y,z:-0.1,kind:'ex',t:0,tex:SPR.ex0,scale:0.9+rad*0.35,bright:true});boomLight(x,y);FX5.boom(x,y,rad,cam,W,H);
+  fx.push({x,y,z:-0.1,kind:'ex',t:0,tex:SPR.ex0,scale:0.9+rad*0.35,bright:true});boomLight(x,y);FX5.boom(x,y,rad,cam,W,H);FX7.boom(x,y,rad);
   lightBoost=Math.max(lightBoost,0.14);
   const dP=Math.hypot(P.x-x,P.y-y);
   shake=Math.max(shake,clamp(1.1-dP/7,0,1));
@@ -3230,8 +3279,8 @@ function damageEnemy(e,dmg,o){
   if(e.state==='stun')dmg*=1.6;
   if(e.type==='titan'&&!e.coreDead)dmg*=e.final?0.1:0.05;
   if(d.weak&&bossRef&&bossRef.type==='titan'&&bossRef.state!=='dead'){bossRef.hp=Math.max(1,bossRef.hp-dmg);bossRef.flash=0.05;if(bossRef.mode==='charge'||bossRef.mode==='sweep'||bossRef.mode==='grab')bossRef.chargeDmg=(bossRef.chargeDmg||0)+dmg;updateBossBar();}
-  e.hp-=dmg;e.flash=0.08;
-  if(o&&o.src!=='e'&&!o.explosive){const z=(e.z||0)+(e.scale||1)*0.5;FX5.hit(e.x,e.y,z,P.x,P.y,dmg);if(e.hp>0&&rnd()<0.6)FX5.addEnemyGlitch(e,0.14,dmg>40);}
+  e.hp-=dmg;e.flash=0.08;e._sq=0.14;
+  if(o&&o.src!=='e'&&!o.explosive){const z=(e.z||0)+(e.scale||1)*0.5;FX5.hit(e.x,e.y,z,P.x,P.y,dmg);FX7.hit(e,dmg,o.crit);if(e.hp>0&&rnd()<0.6)FX5.addEnemyGlitch(e,0.14,dmg>40);}
   if(e.type==='titan'&&!e.coreDead)e.hp=Math.max(1,e.hp);
   if(d.mini&&e.hp>0){const f=e.hp/e.maxHp;e.supplied=e.supplied||0;if((f<0.66&&e.supplied<1)||(f<0.33&&e.supplied<2)){e.supplied++;const k=needAmmoKind();dropItem(k,P.x,P.y,{ammo:30,shells:10,rockets:4,cells:50}[k]);if(P.hp<MOD.maxHp*0.6)dropItem('stim',P.x,P.y);toast('Снабжение сброшено');SFX.pickup();}}
   if(!d.boss&&!d.fly&&!d.mini){const kx=e.x-P.x,ky=e.y-P.y,kl=Math.hypot(kx,ky)||1,kb=Math.min(0.22,dmg*0.004)*(o.explosive?2.5:1)/(d.rad*3.2);moveEnemy(e,kx/kl*kb,ky/kl*kb);}
@@ -3271,7 +3320,7 @@ function killEnemy(e,o,over){
   const now=gameT;multi=(now-lastKillT<0.5)?multi+1:1;lastKillT=now;
   combo=comboT>0?combo+1:1;comboT=3;if(combo>maxCombo)maxCombo=combo;
   const mul=Math.min(5,1+(combo-1)*0.5)*(mode==='endless'?1+(depth-1)*0.1:1);
-  score+=Math.round(d.score*mul);
+  {const _sc=Math.round(d.score*mul);score+=_sc;FX7.kill(e,_sc,combo,o||{});}
   if(combo>=2)SFX.combo(combo);
   if(multi===2)callout('Дубль!');else if(multi===3)callout('Триплет!');else if(multi>=4)callout('Мясорубка!');
   else if(combo>=5&&combo%5===0)callout('Серия '+combo);
@@ -4045,6 +4094,7 @@ function update(dt,rdt){
   const moving=ml>0.1;P.bob+=moving?pdt*9*Math.min(1,ml):0;
   const ci=Math.floor(P.y)*mw+Math.floor(P.x);
   if(floorMap[ci]&&floorMap[ci]!==5){sludgeT-=dt;if(sludgeT<=0){sludgeT=0.35;hurtPlayer(floorMap[ci]===4?5.5:3.5,undefined,undefined,true);SFX.sizzle();}}else sludgeT=0;
+  FX7.wade(dt,moving);
   if(P.ammo.b<15){P.ammoRegT+=pdt;if(P.ammoRegT>(ammoPressure()<0.05?0.35:0.6)){P.ammoRegT=0;P.ammo.b++;}}
   const pc=Math.floor(P.y)*mw+Math.floor(P.x);
   if(pc!==P.lastCell){for(const po of portals){if(po.n>0&&pc===po.ty*mw+po.tx&&P.lastCell===po.fy*mw+po.fx){P.x+=po.ox;P.y+=po.oy;const m=po.msgs&&po.msgs[po.msgs.length-po.n];po.n--;glitchT=0.3;SFX.glitch();if(m)whisper(m);break;}}P.lastCell=Math.floor(P.y)*mw+Math.floor(P.x);}
@@ -4526,7 +4576,199 @@ const FX5=(()=>{
     return n;
   }
   function forceWorld(){nextW=0;}
-  return {forceWorld,GLYPH:{atl,N,CW,CHH,RAMP,FLICK},tex,OP,solidFor,solidCeil,hit,boom,step,draw,drawFlash,glitchStep,addEnemyGlitch,R4,P4,MAXR,get flash(){return flash;},get count(){return P.length;}};
+  return {glyphCanvas,CH,forceWorld,GLYPH:{atl,N,CW,CHH,RAMP,FLICK},tex,OP,solidFor,solidCeil,hit,boom,step,draw,drawFlash,glitchStep,addEnemyGlitch,R4,P4,MAXR,get flash(){return flash;},get count(){return P.length;}};
+})();
+
+/* ==== fx_v7.js ==== */
+/* ===== DEEPCORE v7 (13.11.2026): кислота, отклик на попадание, смерть врагов, свет выстрелов, живой фон =====
+   Живёт внутри игры (та же область видимости): читает P, enemies, projs, floorMap, curDef, state, gameT, shake, toast, SFX.
+   FX7.acid(floorMap,mw,mh) — карта кислоты для шейдера (свет у берега, пена по краю)
+   FX7.uni(u)               — каждый кадр: карта кислоты и до 8 источников света в шейдер мира
+   FX7.shot/impact/hit/kill/boom/wade — события игры
+   FX7.step(dt), FX7.draw(ctx,cam,W,H), FX7.drawHud(ctx,W,H) — частицы и экранные эффекты (серые тона → фильтр #mono) */
+const FX7=(()=>{
+  const rr=(a,b)=>a+Math.random()*(b-a),V=new THREE.Vector3(),TAU=Math.PI*2;
+  /* ---------- карта кислоты ---------- */
+  let tex=null,data=null,tw=0,th=0,cells=[],fm=null,hintDef=null,stepDef=null;
+  const one=new THREE.DataTexture(new Uint8Array(4),1,1,THREE.RGBAFormat);one.needsUpdate=true;
+  const acidV=v=>v===1||v===3||v===4;
+  function acid(floorMap,mw,mh){
+    fm=floorMap;if(!floorMap||!mw||!mh)return;
+    if(!tex||tw!==mw||th!==mh){if(tex)tex.dispose();tw=mw;th=mh;data=new Uint8Array(mw*mh*4);
+      tex=new THREE.DataTexture(data,mw,mh,THREE.RGBAFormat);tex.magFilter=tex.minFilter=THREE.LinearFilter;tex.generateMipmaps=false;tex.wrapS=tex.wrapT=THREE.ClampToEdgeWrapping;}
+    const N=mw*mh,raw=new Float32Array(N);cells=[];
+    for(let i=0;i<N;i++)if(acidV(floorMap[i])){raw[i]=1;cells.push(i);}
+    let a=raw.slice(),b=new Float32Array(N);
+    for(let pass=0;pass<3;pass++){for(let y=0;y<mh;y++)for(let x=0;x<mw;x++){let s=0,n=0;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const X=x+dx,Y=y+dy;if(X<0||Y<0||X>=mw||Y>=mh)continue;s+=a[Y*mw+X];n++;}b[y*mw+x]=s/n;}const t=a;a=b;b=t;}
+    for(let i=0;i<N;i++){data[i*4]=Math.round(Math.min(1,a[i]*1.7)*255);data[i*4+1]=raw[i]?255:0;data[i*4+2]=floorMap[i]===4?255:0;data[i*4+3]=255;}
+    tex.needsUpdate=true;
+  }
+  function isAcid(x,y){if(!fm)return false;const cx=Math.floor(x),cy=Math.floor(y);if(cx<0||cy<0||cx>=tw||cy>=th)return false;return acidV(fm[cy*tw+cx]);}
+
+  /* ---------- свет: вспышки (затухают) + снаряды в полёте ---------- */
+  const DL=[],LS=[];
+  function light(x,y,r,i,dec){if(DL.length>20)DL.shift();DL.push({x,y,r,i,dec});}
+  function uni(u){
+    if(!u.tA)return;u.tA.value=tex||one;u.uAs.value.set(tw||1,th||1);
+    LS.length=0;for(const d of DL)LS.push(d);
+    for(const p of projs){const dd=Math.hypot(p.x-P.x,p.y-P.y);if(dd>14)continue;if(p.owner==='p'&&dd<0.7)continue;
+      LS.push({x:p.x,y:p.y,r:p.owner==='p'?(p.type==='rocket'?2.8:2.1):1.5,i:p.owner==='p'?(p.type==='rocket'?1.0:0.85):0.45});}
+    LS.sort((a,b)=>b.i/(1+0.25*Math.hypot(b.x-P.x,b.y-P.y))-a.i/(1+0.25*Math.hypot(a.x-P.x,a.y-P.y)));
+    for(let k=0;k<8;k++){const L=LS[k];if(L)u.uDL.value[k].set(L.x,L.y,L.r,Math.min(1.6,L.i));else u.uDL.value[k].set(0,0,1,0);}
+  }
+
+  /* ---------- частицы в мире ---------- */
+  const PS=[],MAXP=380,MOTES=[],CAS=[];let kmT=0,acT=0,wadeT=0,ambT=0,sparkT=3,enT=0,hs=0;
+  const add=o=>{if(PS.length>=MAXP)PS.shift();PS.push(o);return o;};
+  function drops(x,y,n,pow,z0){for(let i=0;i<n;i++){const a=rr(0,TAU),s=rr(.25,1.3)*pow;add({k:'d',x:x+rr(-.1,.1),y:y+rr(-.1,.1),z:z0||.03,vx:Math.cos(a)*s,vy:Math.sin(a)*s,vz:rr(1.1,2.7)*Math.sqrt(pow),life:rr(.45,.9),c:Math.random()<.35?255:226});}}
+  function ripple(x,y,r0,r1,life,c){add({k:'r',x,y,z:.015,r0,r1,life,t0:life,c:c||226});}
+  function splash(x,y,pow){drops(x,y,Math.round(8+12*pow),.6+pow*.9);for(let i=0;i<3+pow*4;i++){const a=rr(0,TAU);add({k:'d',x,y,z:.04,vx:Math.cos(a)*rr(.1,.3),vy:Math.sin(a)*rr(.1,.3),vz:rr(2.6,3.6)*Math.sqrt(pow),life:rr(.6,1),c:255,big:1});}ripple(x,y,.04,.35+.35*pow,.5);}
+  function sparks(x,y,z,n,nx,ny,sp){for(let i=0;i<n;i++){const a=Math.atan2(ny||0,nx||0)+rr(-1.2,1.2),s=rr(.6,2.4)*(sp||1);add({k:'s',x,y,z,vx:(nx||ny)?Math.cos(a)*s:rr(-1.5,1.5),vy:(nx||ny)?Math.sin(a)*s:rr(-1.5,1.5),vz:rr(-.4,1.8),life:rr(.25,.6),c:255,px:null,py:null});}}
+  function debris(x,y,z,n,sp){for(let i=0;i<n;i++){const a=rr(0,TAU),s=rr(.5,1.7)*sp;add({k:'b',x,y,z:z+rr(-.15,.15),vx:Math.cos(a)*s,vy:Math.sin(a)*s,vz:rr(1,3.4),life:rr(.9,1.7),c:Math.random()<.3?226:Math.random()<.6?166:110,sz:Math.random()<.35?2:1});}}
+  function popup(x,y,z,txt,big){add({k:'t',x,y,z,txt,life:.95,t0:.95,big:!!big});}
+
+  /* события игры */
+  function shot(cur){
+    const ca=Math.cos(P.a),sa=Math.sin(P.a);light(P.x+ca*.6,P.y+sa*.6,cur===1?4.4:cur===3?4:3.4,cur===2?.75:1.05,cur===2?20:13);
+    if(cur===0||cur===2)CAS.push({x:.6,y:.74,vx:rr(.22,.42),vy:-rr(.35,.6),r:rr(0,3),vr:rr(-18,18),life:.75,big:false});
+    if(cur===1)CAS.push({x:.6,y:.76,vx:rr(.18,.3),vy:-rr(.25,.4),r:0,vr:rr(-10,10),life:.9,big:true,delay:.28});
+  }
+  function impact(x,y,z,nx,ny){
+    if(z<.08){if(isAcid(x,y)){splash(x,y,.8);ripple(x,y,.02,.6,.6,255);if(SFX.acid)SFX.acid(att(x,y));}else debris(x,y,.04,3,.6);return;}
+    sparks(x,y,z,4,nx,ny,.8);light(x,y,1.3,.5,12);
+  }
+  function hit(e,dmg,crit){e._sq=.14;light(e.x,e.y,1.5,.45,10);if(crit)popup(e.x,e.y,(e.z||0)+(e.scale||1)*.95,'***',true);if(isAcid(e.x,e.y))splash(e.x,e.y,.5);}
+  function kill(e,sc,combo,o){
+    const s=e.scale||1,z=(e.z||0)+s*.45,big=!!(o&&o.explosive)||combo>=3;
+    debris(e.x,e.y,z,big?24:15,big?2.4:1.6);sparks(e.x,e.y,z,big?10:6,0,0,1.2);
+    ripple(e.x,e.y,.1,.75+s*.35,.42,255);light(e.x,e.y,3.2,1.25,3.6);
+    const mu=Math.min(5,1+((combo||1)-1)*.5);popup(e.x,e.y,(e.z||0)+s*.98,'+'+sc+(combo>=2?' x'+(mu%1?mu.toFixed(1):String(mu)):''),combo>=3);
+    kmT=.24;shake=Math.max(shake,big?.22:.1);if(big)hs=.055;
+    if(isAcid(e.x,e.y))splash(e.x,e.y,1.1);
+    if(SFX.kill)SFX.kill(combo||1);
+  }
+  function boom(x,y,rad){
+    light(x,y,rad*2.4,1.6,2.6);sparks(x,y,.4,14,0,0,1.8);debris(x,y,.3,10,2.2);ripple(x,y,.2,rad*1.15,.5,255);
+    if(fm){let n=0;const r=Math.ceil(rad+.5);for(let cy=Math.floor(y)-r;cy<=Math.floor(y)+r&&n<7;cy++)for(let cx=Math.floor(x)-r;cx<=Math.floor(x)+r&&n<7;cx++){if(Math.hypot(cx+.5-x,cy+.5-y)<rad+.5&&isAcid(cx+.5,cy+.5)){splash(cx+rr(.2,.8),cy+rr(.2,.8),1.2);n++;}}}
+  }
+  // герой в кислоте: брызги от шагов, пена на экране, подсказка один раз за сектор
+  function wade(dt,moving){
+    if(state!=='play'||P.dead)return;
+    if(fm&&hintDef!==curDef&&cells.length){for(const i of cells){const x=(i%tw)+.5,y=((i/tw)|0)+.5;if(Math.abs(x-P.x)<2.4&&Math.abs(y-P.y)<2.4){hintDef=curDef;toast('Кислота на полу: наступишь — теряешь жизнь');break;}}}
+    if(isAcid(P.x,P.y)){
+      acT=Math.min(1,acT+dt*4);wadeT-=dt;
+      if(stepDef!==curDef){stepDef=curDef;callout('Кислота жжёт! Выйди на чистый пол','bad');}
+      if(wadeT<=0){wadeT=moving?.15:.4;const ca=Math.cos(P.a),sa=Math.sin(P.a),o=rr(-.3,.3),fx=P.x+ca*.5-sa*o,fy=P.y+sa*.5+ca*o;
+        drops(fx,fy,moving?6:2,moving?.75:.35,.04);ripple(fx,fy,.03,moving?.42:.25,.45);if(moving&&SFX.wade)SFX.wade();}
+    }else acT=Math.max(0,acT-dt*2.2);
+  }
+
+  function step(dt){
+    if(dt<=0)return;
+    for(let i=DL.length-1;i>=0;i--){const d=DL[i];d.i*=Math.exp(-d.dec*dt);if(d.i<.03)DL.splice(i,1);}
+    kmT=Math.max(0,kmT-dt);
+    for(let i=PS.length-1;i>=0;i--){const p=PS[i];p.life-=dt;if(p.life<=0){PS.splice(i,1);continue;}
+      if(p.k==='r'||p.k==='t'){if(p.k==='t')p.z+=dt*.55;continue;}
+      if(p.k==='v'){p.z+=p.vz*dt;p.x+=Math.sin(gameT*2+p.ph)*dt*.08;continue;}
+      const nx=p.x+p.vx*dt,ny=p.y+p.vy*dt;if(solidTile(Math.floor(nx),Math.floor(ny))){p.vx*=-.3;p.vy*=-.3;}else{p.x=nx;p.y=ny;}
+      p.vz-=(p.k==='s'?7:6.5)*dt;p.z+=p.vz*dt;
+      if(p.z<.02){if(p.k==='d'){if(isAcid(p.x,p.y)&&Math.random()<.35)ripple(p.x,p.y,.02,.18,.3);PS.splice(i,1);continue;}
+        p.z=.02;p.vz=-p.vz*(p.k==='s'?.45:.3);p.vx*=.55;p.vy*=.55;}
+      if(p.z>1.02&&!skyMode){p.z=1.02;p.vz=-Math.abs(p.vz)*.3;}}
+    // кислота живёт сама: пар и лопнувшие пузыри у героя на виду
+    if(fm&&cells.length&&state!=='menu'){ambT-=dt;while(ambT<=0){ambT+=.03;const i=cells[(Math.random()*cells.length)|0],x=(i%tw)+rr(.1,.9),y=((i/tw)|0)+rr(.1,.9),dx=x-P.x,dy=y-P.y,d=Math.hypot(dx,dy);
+      if(d>9||(dx*Math.cos(P.a)+dy*Math.sin(P.a))/(d||1)<.15)continue;
+      if(Math.random()<.4){drops(x,y,2+((Math.random()*2)|0),.32,.02);if(d<5&&SFX.bubble&&Math.random()<.25)SFX.bubble(att(x,y));}
+      else add({k:'v',x,y,z:.03,vz:rr(.18,.42),ph:rr(0,6),life:rr(1,2.1),c:Math.random()<.3?166:120});}}
+    // пыль в воздухе вокруг героя
+    if(state!=='menu'&&!chaseMode){while(MOTES.length<70)MOTES.push(newMote(true));
+      for(const m of MOTES){m.x+=m.vx*dt;m.y+=m.vy*dt;m.z+=m.vz*dt+Math.sin(gameT*.9+m.ph)*dt*.03;if(m.z<.05||m.z>.98)m.vz=-m.vz;
+        const dx=m.x-P.x,dy=m.y-P.y;if(dx*dx+dy*dy>30||solidTile(Math.floor(m.x),Math.floor(m.y)))Object.assign(m,newMote(false));}}
+    // искры из проводки на стенах — изредка, на виду
+    if(state==='play'&&!chaseMode){sparkT-=dt;if(sparkT<=0){sparkT=rr(2.2,5.5);const a=P.a+rr(-.45,.45),ca=Math.cos(a),sa=Math.sin(a);rayCast(P.x,P.y,ca,sa);
+      if(hDist>2.2&&hDist<9){const x=P.x+ca*(hDist-.06),y=P.y+sa*(hDist-.06),z=rr(.72,.93);sparks(x,y,z,rr(8,14)|0,-ca,-sa,.7);light(x,y,1.7,.85,5);if(SFX.spark)SFX.spark(att(x,y));}}}
+    // враги: сжатие от попадания, брызги, если идут по кислоте
+    enT-=dt;const chk=enT<=0;if(chk)enT=.22;
+    for(const e of enemies){if(e._sq>0)e._sq-=dt;if(chk&&e.state!=='dead'&&e.state!=='idle'&&isAcid(e.x,e.y)&&Math.hypot(e.x-P.x,e.y-P.y)<10)drops(e.x,e.y,3,.5,.03);}
+    for(let i=CAS.length-1;i>=0;i--){const c=CAS[i];if(c.delay>0){c.delay-=dt;continue;}c.life-=dt;if(c.life<=0){CAS.splice(i,1);continue;}c.vy+=2.6*dt;c.x+=c.vx*dt;c.y+=c.vy*dt;c.r+=c.vr*dt;}
+  }
+  function newMote(any){const a=rr(0,TAU),r=any?rr(.6,5):rr(4,5.2),f=any?0:rr(-.9,.9);const aa=any?a:P.a+f;return{x:P.x+Math.cos(aa)*r,y:P.y+Math.sin(aa)*r,z:rr(.08,.95),vx:rr(-.05,.05),vy:rr(-.05,.05),vz:rr(-.03,.03),ph:rr(0,6)};}
+
+  /* ---------- рисование (пиксельный слой #view, серые тона) ---------- */
+  const G=(v)=>`rgb(${v},${v},${v})`;
+  function proj(x,y,z,cam,W,H){V.set(x,z,y).project(cam);if(V.z>1||V.z<-1)return false;V.x=(V.x+1)/2*W;V.y=(1-V.y)/2*H;return V.x>-20&&V.y>-20&&V.x<W+20&&V.y<H+20;}
+  const XM=['.....','.....','#...#','.#.#.','..#..','.#.#.','#...#'];
+  function xm(ctx,cx,y,sc,v){ctx.fillStyle=G(v);for(let r=0;r<7;r++)for(let c=0;c<5;c++)if(XM[r][c]==='#')ctx.fillRect(cx+c*sc,y+r*sc,sc,sc);}
+  function text(ctx,s,x,y,sc,v){const cw=6*sc,w=s.length*cw;let cx=Math.round(x-w/2);for(const ch of s){if(ch==='x'){xm(ctx,cx+sc,Math.round(y)+sc,sc,0);xm(ctx,cx,Math.round(y),sc,v);cx+=cw;continue;}const gi=FX5.CH.indexOf(ch);if(gi>=0){ctx.drawImage(FX5.glyphCanvas(gi,0),cx+sc,Math.round(y)+sc,5*sc,7*sc);ctx.drawImage(FX5.glyphCanvas(gi,v),cx,Math.round(y),5*sc,7*sc);}cx+=cw;}}
+  function draw(ctx,cam,W,H){
+    const cx0=cam.position.x,cz0=cam.position.z;
+    for(const m of MOTES){if(!proj(m.x,m.y,m.z,cam,W,H))continue;const d=Math.hypot(m.x-cx0,m.y-cz0);if(d<.5)continue;const tw2=.5+.5*Math.sin(gameT*3+m.ph*7);if(tw2<.25)continue;
+      ctx.fillStyle=G(d<2.2?(tw2>.8?150:110):92);ctx.fillRect(V.x|0,V.y|0,1,1);}
+    const TR=[];
+    if(PS.some(p=>p.k==='t')){const co=document.getElementById('callout');if(co&&co.textContent&&+getComputedStyle(co).opacity>.05){const r=co.getBoundingClientRect(),cv=ctx.canvas.getBoundingClientRect(),kx=W/cv.width,ky=H/cv.height;TR.push([(r.left-cv.left)*kx,(r.top-cv.top)*ky,(r.right-cv.left)*kx,(r.bottom-cv.top)*ky]);}}   // крупная надпись посреди экрана — тоже занятое место
+    for(const p of PS){
+      if(p.k==='r'){const f=1-p.life/p.t0,r=p.r0+(p.r1-p.r0)*Math.sqrt(f);ctx.fillStyle=G(f<.6?p.c:166);const n=28;
+        for(let k=0;k<n;k++){if(f>.5&&(k+((gameT*30)|0))%3===0)continue;const a=k/n*TAU;if(!proj(p.x+Math.cos(a)*r,p.y+Math.sin(a)*r,p.z,cam,W,H))continue;const dn=Math.hypot(p.x-cx0,p.y-cz0)<3;ctx.fillRect(V.x|0,V.y|0,dn?2:1,dn&&f<.4?2:1);}continue;}
+      if(!proj(p.x,p.y,p.z,cam,W,H))continue;const d=Math.hypot(p.x-cx0,p.y-cz0),sx=V.x,sy=V.y;
+      if(p.k==='t'){const f=p.life/p.t0;if(f<.25&&((p.life*30)|0)%2)continue;const sc=Math.round(Math.max(1,Math.round(Math.min(W,H)/180))*(p.big?1.5:1)),tw3=p.txt.length*6*sc,th3=8*sc;let ty=sy;for(let k=0;k<8;k++){const hit=TR.find(r=>sx-tw3/2<r[2]&&r[0]<sx+tw3/2&&ty<r[3]&&r[1]<ty+th3);if(!hit)break;ty=hit[1]-th3-2;}TR.push([sx-tw3/2,ty,sx+tw3/2,ty+th3]);text(ctx,p.txt,sx,ty,sc,p.big||f>.6?255:226);continue;}
+      const sz=d<1.6?4:d<3.2?3:d<6?2:1;
+      if(p.k==='s'){ctx.fillStyle=G(p.life>.25?255:226);if(p.px!==null&&Math.abs(p.px-sx)+Math.abs(p.py-sy)<40){ctx.beginPath();ctx.strokeStyle=G(226);ctx.lineWidth=1;ctx.moveTo(p.px,p.py);ctx.lineTo(sx,sy);ctx.stroke();}ctx.fillRect(sx|0,sy|0,sz>2?2:1,sz>2?2:1);p.px=sx;p.py=sy;continue;}
+      if(p.k==='v'){const f=p.life;if(f<.4&&((f*24)|0)%2)continue;ctx.fillStyle=G(p.c);ctx.fillRect(sx|0,sy|0,sz>1?2:1,sz>2?2:1);continue;}
+      if(p.k==='b'){if(p.life<.35&&((p.life*30)|0)%2)continue;const s2=sz+(p.sz>1?1:0);ctx.fillStyle=G(p.c);ctx.fillRect((sx-s2/2)|0,(sy-s2/2)|0,s2,s2);continue;}
+      if(p.k==='d'){const s2=sz+(p.big?1:0);ctx.fillStyle=G(p.c);ctx.fillRect((sx-s2/2)|0,(sy-s2/2)|0,s2,s2+(p.vz<-1&&s2>1?Math.min(3,s2):0));}
+    }
+  }
+  function drawHud(ctx,W,H){
+    const sc=Math.max(1,Math.round(Math.min(W,H)/180));
+    for(const c of CAS){if(c.delay>0)continue;const x=c.x*W,y=c.y*H,horiz=Math.abs(Math.sin(c.r))<.5,l=(c.big?3:2)*sc;ctx.fillStyle=G(c.big?166:200);if(horiz)ctx.fillRect(x|0,y|0,l,sc);else ctx.fillRect(x|0,y|0,sc,l);ctx.fillStyle=G(255);ctx.fillRect(x|0,y|0,sc,sc);}
+    if(kmT>0&&!P.dead){const cx=W>>1,cy=H>>1,g=Math.round(4+(.24-kmT)*40),L=3;ctx.fillStyle=G(255);for(const [sx,sy] of [[-1,-1],[1,-1],[-1,1],[1,1]])for(let k=0;k<L;k++)ctx.fillRect(cx+sx*(g+k),cy+sy*(g+k),1,1);}
+    if(acT>0&&!P.dead){const a=acT;ctx.globalAlpha=Math.min(.8,a*.85);
+      for(let x=0;x<W;x+=2){const h=(5+4*Math.sin(x*.21+gameT*7.3)+3*Math.sin(x*.067-gameT*4.1)+2*Math.sin(x*.5+gameT*13))*a*sc*.9;if(h<1)continue;
+        ctx.fillStyle=G(150);ctx.fillRect(x,H-h,2,h);ctx.fillStyle=G(240);ctx.fillRect(x,(H-h)|0,2,1);}
+      const b=((gameT*14)|0)%2;ctx.fillStyle=G(110);for(let y=0;y<H*.7;y+=3)if(((y/3)|0)%2===b){ctx.fillRect(0,H-y,1+a*2,1);ctx.fillRect(W-1-a*2,H-y,1+a*2,1);}
+      ctx.globalAlpha=1;}
+  }
+  // враг: сжатие от попадания и дыхание на ходу (масштаб спрайта)
+  const SQ=[1,1];
+  function sq(s){SQ[0]=SQ[1]=1;if(!s._en)return SQ;const k=s._sq>0?s._sq/.14:0;SQ[0]=1+.2*k;SQ[1]=1-.14*k;
+    if(s.state==='chase'||s.state==='attack'||s.state==='flee'){const ph=s._ph||(s._ph=1+Math.random()*6),w=Math.sin(gameT*8.5+ph);SQ[1]*=1+.035*w;SQ[0]*=1-.02*w;}return SQ;}
+  function sparkNow(){sparkT=0;}
+  return {sparkNow,sq,acid,isAcid,uni,light,shot,impact,hit,kill,boom,wade,step,draw,drawHud,splash,
+    get hs(){return hs;},set hs(v){hs=v;},get count(){return PS.length;},get acT(){return acT;},get cells(){return cells.length;}};
+})();
+
+const LOGO7='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 202.529 64.574" class="logo" role="img" aria-label="Compass College">\n<title>Compass College — additional logo 1, white</title>\n<path fill="#FFFFFF" d="M92.115 3.233C93.168 3.233 94.178 3.371 95.144 3.646C96.111 3.921 96.911 4.258 97.545 4.654C98.178 5.049 98.731 5.441 99.204 5.828C99.678 6.215 100.026 6.548 100.249 6.828L100.568 7.234L98.494 9.322C98.436 9.246 98.351 9.136 98.24 8.997C98.129 8.857 97.876 8.602 97.479 8.235C97.083 7.867 96.658 7.551 96.204 7.285C95.748 7.02 95.156 6.774 94.427 6.546C93.697 6.318 92.927 6.206 92.115 6.206C89.959 6.206 88.132 6.952 86.633 8.444C85.136 9.938 84.386 11.763 84.386 13.919C84.386 16.074 85.133 17.901 86.627 19.4C88.12 20.898 89.949 21.647 92.115 21.647C92.927 21.647 93.703 21.533 94.441 21.307C95.182 21.079 95.795 20.806 96.283 20.487C96.77 20.168 97.201 19.852 97.574 19.538C97.945 19.224 98.223 18.955 98.407 18.733L98.639 18.37L100.727 20.458C100.65 20.575 100.531 20.727 100.372 20.915C100.213 21.103 99.86 21.435 99.314 21.908C98.767 22.382 98.187 22.803 97.574 23.17C96.96 23.537 96.157 23.868 95.167 24.163C94.175 24.458 93.158 24.605 92.115 24.605C89.002 24.605 86.392 23.571 84.284 21.503C82.178 19.433 81.124 16.905 81.124 13.919C81.124 10.931 82.178 8.403 84.284 6.336C86.392 4.267 89.002 3.233 92.115 3.233"/>\n<path fill="#FFFFFF" d="M113.501 20.56C114.38 19.641 114.82 18.518 114.82 17.189C114.82 15.859 114.38 14.735 113.501 13.818C112.621 12.899 111.577 12.439 110.368 12.439C109.161 12.439 108.113 12.899 107.229 13.818C106.344 14.735 105.902 15.859 105.902 17.189C105.902 18.518 106.344 19.641 107.229 20.56C108.113 21.477 109.161 21.937 110.368 21.937C111.577 21.937 112.621 21.477 113.501 20.56M105.155 22.393C103.682 20.92 102.945 19.184 102.945 17.189C102.945 15.192 103.682 13.455 105.155 11.976C106.63 10.497 108.367 9.757 110.368 9.757C112.369 9.757 114.107 10.497 115.581 11.976C117.055 13.455 117.792 15.192 117.792 17.189C117.792 19.184 117.055 20.92 115.581 22.393C114.107 23.868 112.369 24.605 110.368 24.605C108.367 24.605 106.63 23.868 105.155 22.393"/>\n<path fill="#FFFFFF" d="M139.456 24.315L139.456 16.006C139.456 14.837 139.187 13.95 138.651 13.346C138.115 12.743 137.392 12.44 136.483 12.44C135.555 12.44 134.779 12.81 134.156 13.549C133.532 14.289 133.221 15.306 133.221 16.601L133.221 24.315L130.248 24.315L130.248 16.006C130.248 14.837 129.981 13.95 129.443 13.346C128.907 12.743 128.184 12.44 127.276 12.44C126.348 12.44 125.573 12.81 124.949 13.549C124.326 14.289 124.013 15.306 124.013 16.601L124.013 24.315L121.041 24.315L121.041 10.061L124.013 10.061L124.013 11.54C124.13 11.405 124.291 11.238 124.499 11.041C124.707 10.842 125.143 10.579 125.805 10.251C126.467 9.922 127.155 9.757 127.87 9.757C128.441 9.757 128.985 9.837 129.502 9.997C130.019 10.157 130.432 10.354 130.741 10.591C131.051 10.828 131.32 11.067 131.546 11.309C131.774 11.551 131.935 11.748 132.032 11.903L132.178 12.135C132.216 12.078 132.281 11.996 132.372 11.889C132.465 11.783 132.662 11.589 132.967 11.309C133.271 11.029 133.598 10.784 133.946 10.576C134.293 10.369 134.75 10.18 135.316 10.011C135.882 9.841 136.469 9.757 137.078 9.757C138.741 9.757 140.048 10.289 141 11.352C141.952 12.416 142.429 13.967 142.429 16.006L142.429 24.315L139.456 24.315"/>\n<path fill="#FFFFFF" d="M156.856 13.832C155.985 12.904 154.985 12.439 153.854 12.439C152.723 12.439 151.722 12.904 150.853 13.832C149.983 14.759 149.547 15.879 149.547 17.189C149.547 18.499 149.983 19.617 150.853 20.545C151.722 21.474 152.723 21.937 153.854 21.937C154.985 21.937 155.985 21.474 156.856 20.545C157.726 19.617 158.16 18.499 158.16 17.189C158.16 15.879 157.726 14.759 156.856 13.832M154.144 24.605C153.612 24.605 153.096 24.541 152.592 24.417C152.089 24.291 151.659 24.134 151.301 23.946C150.944 23.756 150.627 23.563 150.352 23.366C150.077 23.167 149.875 23.009 149.751 22.894L149.547 22.677L149.547 30.55L146.574 30.55L146.574 10.061L149.547 10.061L149.547 11.701C149.682 11.565 149.874 11.387 150.12 11.164C150.367 10.942 150.891 10.652 151.693 10.294C152.496 9.936 153.313 9.757 154.144 9.757C156.028 9.757 157.665 10.479 159.053 11.926C160.439 13.37 161.133 15.122 161.133 17.181C161.133 19.24 160.439 20.993 159.053 22.437C157.665 23.882 156.028 24.605 154.144 24.605"/>\n<path fill="#FFFFFF" d="M168.991 21.938C170.199 21.938 171.144 21.577 171.826 20.857C172.506 20.137 172.848 19.111 172.848 17.775L172.848 17.486L168.236 18.227C167.705 18.322 167.275 18.54 166.947 18.878C166.617 19.217 166.453 19.641 166.453 20.154C166.453 20.628 166.683 21.044 167.142 21.402C167.601 21.758 168.218 21.938 168.991 21.938M175.821 24.316L172.848 24.316L172.848 22.837C172.808 22.874 172.743 22.939 172.652 23.025C172.559 23.111 172.377 23.255 172.101 23.452C171.826 23.65 171.528 23.829 171.209 23.99C170.89 24.148 170.489 24.292 170.005 24.417C169.522 24.542 169.035 24.605 168.541 24.605C167.091 24.605 165.887 24.184 164.931 23.344C163.974 22.503 163.495 21.542 163.495 20.458C163.495 19.29 163.865 18.309 164.604 17.516C165.344 16.723 166.356 16.221 167.642 16.007L172.848 15.107C172.848 14.354 172.57 13.721 172.014 13.208C171.458 12.697 170.745 12.439 169.875 12.439C169.121 12.439 168.438 12.598 167.823 12.911C167.21 13.227 166.786 13.542 166.555 13.861L166.163 14.37L164.235 12.439C164.293 12.363 164.373 12.264 164.475 12.143C164.575 12.023 164.803 11.809 165.155 11.505C165.509 11.201 165.883 10.928 166.279 10.686C166.675 10.445 167.199 10.229 167.852 10.04C168.505 9.852 169.179 9.758 169.875 9.758C171.615 9.758 173.041 10.273 174.152 11.303C175.264 12.331 175.821 13.6 175.821 15.107L175.821 24.316"/>\n<path fill="#FFFFFF" d="M189.03 11.701L187.101 13.629C187.024 13.552 186.91 13.443 186.76 13.303C186.611 13.162 186.301 12.984 185.832 12.766C185.364 12.548 184.892 12.44 184.418 12.44C183.78 12.44 183.275 12.588 182.903 12.882C182.531 13.177 182.345 13.523 182.345 13.919C182.345 14.334 182.523 14.682 182.882 14.963C183.24 15.244 183.689 15.456 184.23 15.601C184.772 15.746 185.354 15.927 185.978 16.144C186.6 16.363 187.186 16.606 187.732 16.877C188.278 17.148 188.729 17.564 189.087 18.124C189.444 18.685 189.624 19.362 189.624 20.154C189.624 21.381 189.128 22.43 188.138 23.3C187.147 24.17 185.859 24.605 184.274 24.605C183.577 24.605 182.913 24.518 182.28 24.345C181.647 24.17 181.128 23.963 180.721 23.721C180.315 23.48 179.96 23.235 179.655 22.989C179.351 22.743 179.131 22.532 178.996 22.358L178.778 22.083L180.707 20.154C180.803 20.289 180.947 20.458 181.134 20.661C181.322 20.865 181.729 21.128 182.353 21.451C182.976 21.776 183.616 21.937 184.274 21.937C185.066 21.937 185.66 21.776 186.057 21.451C186.453 21.128 186.652 20.695 186.652 20.154C186.652 19.738 186.473 19.392 186.116 19.117C185.757 18.842 185.308 18.63 184.766 18.479C184.225 18.329 183.642 18.145 183.02 17.928C182.396 17.711 181.811 17.47 181.266 17.203C180.719 16.937 180.267 16.522 179.91 15.956C179.551 15.391 179.372 14.712 179.372 13.919C179.372 12.826 179.854 11.86 180.815 11.019C181.777 10.178 182.978 9.757 184.418 9.757C184.989 9.757 185.542 9.823 186.079 9.953C186.615 10.084 187.053 10.243 187.391 10.432C187.73 10.62 188.026 10.814 188.283 11.012C188.539 11.209 188.725 11.367 188.841 11.484L189.03 11.701"/>\n<path fill="#FFFFFF" d="M201.935 11.701L200.006 13.629C199.929 13.552 199.815 13.443 199.665 13.303C199.516 13.162 199.206 12.984 198.737 12.766C198.269 12.548 197.797 12.44 197.323 12.44C196.685 12.44 196.18 12.588 195.808 12.882C195.436 13.177 195.25 13.523 195.25 13.919C195.25 14.334 195.428 14.682 195.787 14.963C196.145 15.244 196.594 15.456 197.135 15.601C197.677 15.746 198.259 15.927 198.883 16.144C199.505 16.363 200.091 16.606 200.637 16.877C201.183 17.148 201.634 17.564 201.992 18.124C202.349 18.685 202.529 19.362 202.529 20.154C202.529 21.381 202.033 22.43 201.043 23.3C200.052 24.17 198.764 24.605 197.179 24.605C196.482 24.605 195.818 24.518 195.185 24.345C194.552 24.17 194.033 23.963 193.626 23.721C193.22 23.48 192.865 23.235 192.56 22.989C192.256 22.743 192.036 22.532 191.901 22.358L191.683 22.083L193.612 20.154C193.708 20.289 193.852 20.458 194.039 20.661C194.227 20.865 194.634 21.128 195.258 21.451C195.881 21.776 196.521 21.937 197.179 21.937C197.971 21.937 198.565 21.776 198.962 21.451C199.358 21.128 199.557 20.695 199.557 20.154C199.557 19.738 199.378 19.392 199.021 19.117C198.662 18.842 198.213 18.63 197.671 18.479C197.13 18.329 196.547 18.145 195.925 17.928C195.301 17.711 194.716 17.47 194.171 17.203C193.624 16.937 193.172 16.522 192.815 15.956C192.456 15.391 192.277 14.712 192.277 13.919C192.277 12.826 192.759 11.86 193.72 11.019C194.682 10.178 195.883 9.757 197.323 9.757C197.894 9.757 198.447 9.823 198.984 9.953C199.52 10.084 199.958 10.243 200.296 10.432C200.635 10.62 200.931 10.814 201.188 11.012C201.444 11.209 201.63 11.367 201.746 11.484L201.935 11.701"/>\n<path fill="#FFFFFF" d="M92.115 37.256C93.168 37.256 94.178 37.394 95.144 37.669C96.111 37.944 96.911 38.281 97.545 38.677C98.178 39.073 98.731 39.464 99.204 39.851C99.678 40.238 100.026 40.571 100.249 40.851L100.568 41.257L98.494 43.346C98.436 43.269 98.351 43.159 98.24 43.02C98.129 42.88 97.876 42.625 97.479 42.258C97.083 41.89 96.658 41.574 96.204 41.308C95.748 41.043 95.156 40.797 94.427 40.569C93.697 40.341 92.927 40.229 92.115 40.229C89.959 40.229 88.132 40.976 86.633 42.468C85.136 43.961 84.386 45.786 84.386 47.942C84.386 50.097 85.133 51.924 86.627 53.423C88.12 54.921 89.949 55.67 92.115 55.67C92.927 55.67 93.703 55.556 94.441 55.33C95.182 55.102 95.795 54.829 96.283 54.51C96.77 54.191 97.201 53.875 97.574 53.561C97.945 53.247 98.223 52.978 98.407 52.756L98.639 52.393L100.727 54.481C100.65 54.598 100.531 54.75 100.372 54.938C100.213 55.126 99.86 55.458 99.314 55.931C98.767 56.405 98.187 56.826 97.574 57.193C96.96 57.56 96.157 57.891 95.167 58.186C94.175 58.481 93.158 58.628 92.115 58.628C89.002 58.628 86.392 57.594 84.284 55.526C82.178 53.456 81.124 50.929 81.124 47.942C81.124 44.954 82.178 42.427 84.284 40.359C86.392 38.29 89.002 37.256 92.115 37.256"/>\n<path fill="#FFFFFF" d="M113.501 54.583C114.38 53.664 114.82 52.541 114.82 51.212C114.82 49.882 114.38 48.758 113.501 47.841C112.621 46.923 111.577 46.462 110.368 46.462C109.161 46.462 108.113 46.923 107.229 47.841C106.344 48.758 105.902 49.882 105.902 51.212C105.902 52.541 106.344 53.664 107.229 54.583C108.113 55.501 109.161 55.96 110.368 55.96C111.577 55.96 112.621 55.501 113.501 54.583M105.155 56.417C103.682 54.943 102.945 53.207 102.945 51.212C102.945 49.215 103.682 47.479 105.155 45.999C106.63 44.52 108.367 43.781 110.368 43.781C112.369 43.781 114.107 44.52 115.581 45.999C117.055 47.479 117.792 49.215 117.792 51.212C117.792 53.207 117.055 54.943 115.581 56.417C114.107 57.891 112.369 58.628 110.368 58.628C108.367 58.628 106.63 57.891 105.155 56.417"/>\n<path fill="#FFFFFF" d="M121.345 37.546H124.303V58.338H121.345Z"/>\n<path fill="#FFFFFF" d="M129.059 37.546H132.017V58.338H129.059Z"/>\n<path fill="#FFFFFF" d="M142.848 46.318C141.774 46.318 140.874 46.634 140.143 47.268C139.413 47.901 138.923 48.72 138.672 49.725L146.922 49.725C146.749 48.72 146.299 47.901 145.573 47.268C144.849 46.634 143.94 46.318 142.848 46.318M149.678 52.249L138.541 52.249C138.696 53.254 139.191 54.124 140.028 54.859C140.863 55.593 141.856 55.96 143.007 55.96C143.838 55.96 144.614 55.772 145.335 55.395C146.055 55.017 146.565 54.651 146.864 54.293L147.314 53.742L149.242 55.67C149.184 55.748 149.095 55.857 148.973 55.996C148.853 56.136 148.595 56.373 148.199 56.707C147.801 57.041 147.382 57.336 146.937 57.591C146.492 57.848 145.915 58.084 145.204 58.302C144.494 58.52 143.762 58.628 143.007 58.628C140.986 58.628 139.245 57.887 137.779 56.402C136.315 54.92 135.583 53.137 135.583 51.06C135.583 49.059 136.296 47.346 137.723 45.92C139.147 44.494 140.859 43.78 142.855 43.78C144.851 43.78 146.513 44.446 147.843 45.774C149.172 47.103 149.837 48.769 149.837 50.77L149.678 52.249"/>\n<path fill="#FFFFFF" d="M156.362 47.754C155.56 48.615 155.158 49.667 155.158 50.915C155.158 52.162 155.56 53.216 156.362 54.075C157.164 54.936 158.102 55.366 159.176 55.366C160.248 55.366 161.183 54.936 161.981 54.075C162.779 53.216 163.177 52.162 163.177 50.915C163.177 49.667 162.779 48.615 161.981 47.754C161.183 46.893 160.248 46.463 159.176 46.463C158.102 46.463 157.164 46.893 156.362 47.754M163.177 57.483L163.177 56.265L162.989 56.453C162.902 56.541 162.72 56.684 162.445 56.881C162.169 57.08 161.873 57.258 161.554 57.419C161.235 57.577 160.833 57.723 160.35 57.853C159.867 57.984 159.373 58.049 158.871 58.049C157.073 58.049 155.512 57.355 154.188 55.968C152.862 54.581 152.2 52.897 152.2 50.915C152.2 48.934 152.862 47.25 154.188 45.862C155.512 44.474 157.073 43.78 158.871 43.78C159.663 43.78 160.418 43.931 161.133 44.231C161.848 44.53 162.365 44.83 162.685 45.129L163.177 45.564L163.177 44.085L166.15 44.085L166.15 57.454C166.15 59.455 165.464 61.142 164.091 62.515C162.718 63.887 161.031 64.574 159.03 64.574C158.218 64.574 157.445 64.469 156.71 64.261C155.975 64.053 155.372 63.807 154.898 63.523C154.425 63.236 154.009 62.949 153.652 62.659C153.293 62.369 153.037 62.118 152.882 61.906L152.636 61.601L154.578 59.672C154.617 59.73 154.68 59.81 154.768 59.912C154.854 60.014 155.04 60.192 155.325 60.448C155.611 60.705 155.913 60.931 156.232 61.13C156.551 61.329 156.962 61.507 157.465 61.666C157.967 61.826 158.488 61.906 159.03 61.906C160.239 61.906 161.232 61.494 162.011 60.673C162.788 59.851 163.177 58.788 163.177 57.483"/>\n<path fill="#FFFFFF" d="M176.676 46.318C175.602 46.318 174.702 46.634 173.971 47.268C173.241 47.901 172.751 48.72 172.5 49.725L180.75 49.725C180.577 48.72 180.127 47.901 179.401 47.268C178.677 46.634 177.768 46.318 176.676 46.318M183.506 52.249L172.369 52.249C172.524 53.254 173.019 54.124 173.856 54.859C174.691 55.593 175.684 55.96 176.835 55.96C177.666 55.96 178.442 55.772 179.163 55.395C179.883 55.017 180.393 54.651 180.692 54.293L181.142 53.742L183.07 55.67C183.012 55.748 182.923 55.857 182.801 55.996C182.681 56.136 182.423 56.373 182.027 56.707C181.629 57.041 181.21 57.336 180.765 57.591C180.32 57.848 179.743 58.084 179.032 58.302C178.322 58.52 177.59 58.628 176.835 58.628C174.814 58.628 173.073 57.887 171.607 56.402C170.143 54.92 169.411 53.137 169.411 51.06C169.411 49.059 170.124 47.346 171.551 45.92C172.975 44.494 174.687 43.78 176.683 43.78C178.679 43.78 180.341 44.446 181.671 45.774C183 47.103 183.665 48.769 183.665 50.77L183.506 52.249"/>\n<path fill="#FFFFFF" fill-rule="evenodd" d="M3.046 3.045H61.063V61.05H3.046ZM0 0H64.108V64.096H0Z"/>\n<path fill="#FFFFFF" d="M34.27 15.015C29.05 15.015 24.786 16.666 21.234 20.063C17.704 23.443 15.988 27.363 15.988 32.048C15.988 36.732 17.704 40.653 21.234 44.032C24.786 47.43 29.05 49.081 34.27 49.081C36.016 49.081 37.74 48.848 39.394 48.39C41.061 47.928 42.395 47.412 43.363 46.858C44.375 46.281 45.333 45.613 46.214 44.874C46.952 44.253 47.372 43.872 47.609 43.644L42.98 38.739C42.827 38.867 42.661 39.003 42.481 39.148C41.945 39.579 41.332 40.01 40.608 40.462C39.832 40.946 38.886 41.343 37.793 41.643C36.715 41.939 35.612 42.09 34.514 42.09C31.601 42.09 29.13 41.12 27.171 39.21C25.201 37.285 24.204 34.88 24.204 32.061C24.204 29.244 25.201 26.835 27.167 24.903L27.168 24.902C29.127 22.982 31.598 22.009 34.514 22.009C35.588 22.009 36.673 22.175 37.74 22.502C38.789 22.827 39.641 23.186 40.348 23.598C41.037 24 41.692 24.464 42.295 24.978C42.465 25.123 42.62 25.257 42.758 25.379L47.515 20.432C47.244 20.16 46.807 19.76 46.148 19.237C45.36 18.612 44.401 17.958 43.298 17.293C42.273 16.679 40.94 16.141 39.343 15.695C37.733 15.243 36.028 15.015 34.27 15.015M34.27 52.126C28.312 52.126 23.217 50.143 19.129 46.233C15.024 42.303 12.942 37.531 12.942 32.048C12.942 26.565 15.024 21.792 19.129 17.864C23.217 13.952 28.312 11.97 34.27 11.97C36.306 11.97 38.289 12.236 40.163 12.763C42.02 13.281 43.603 13.927 44.867 14.682C46.101 15.427 47.138 16.136 48.041 16.85C48.991 17.605 49.687 18.252 50.171 18.829L51.544 20.634L42.821 29.707L41.723 28.63C41.608 28.516 41.45 28.354 41.251 28.133C41.115 27.986 40.797 27.702 40.321 27.297C39.853 26.898 39.347 26.54 38.814 26.229C38.316 25.938 37.652 25.663 36.841 25.411C36.058 25.171 35.296 25.054 34.514 25.054C32.394 25.054 30.688 25.715 29.3 27.076C27.92 28.433 27.249 30.064 27.249 32.061C27.249 34.057 27.92 35.682 29.299 37.032C30.687 38.385 32.393 39.044 34.514 39.044C35.339 39.044 36.171 38.931 36.986 38.707C37.795 38.484 38.471 38.206 38.994 37.879C39.605 37.498 40.136 37.126 40.571 36.775C41 36.431 41.342 36.142 41.594 35.91L42.988 34.309L51.594 43.431L50.897 44.444C50.744 44.666 50.514 44.964 50.205 45.331C49.981 45.596 49.548 46.049 48.173 47.206C47.151 48.063 46.042 48.835 44.875 49.501C43.674 50.19 42.146 50.787 40.207 51.324C38.289 51.856 36.291 52.126 34.27 52.126"/>\n</svg>';
+/* ==== rec_v7.js ==== */
+/* ===== v7 (13.11): плашка рекорда, как в играх пульта (play.js): картинка 1200×630 «игра · очки · дата», скачать или скопировать — без сервера ===== */
+const REC7=(()=>{
+  let cv=null,url='',cur=null,logo=null;
+  try{const i=new Image();i.onload=()=>{logo=i;};i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(LOGO7.replace(/class="logo"/,'width="810" height="258"'));}catch(_){}
+  const ART=["....####....","..########..",".##.####.##.","##..####..##","############","###.#..#.###",".##########.","..#.#..#.#..","..########..","...#.##.#..."];
+  const z=n=>String(n).padStart(2,'0'),date=()=>{const d=new Date();return z(d.getDate())+'.'+z(d.getMonth()+1)+'.'+d.getFullYear();};
+  function best(key,score){let m={};try{m=JSON.parse(localStorage.getItem('deepcore.rec7')||'{}');}catch(_){}const prev=m[key]||0,rec=score>prev&&score>0;
+    if(rec){m[key]=score;try{localStorage.setItem('deepcore.rec7',JSON.stringify(m));}catch(_){}}return{rec,best:Math.max(prev,score)};}
+  function draw(o){const W=1200,H=630,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d'),g='#ACB948',iv='#E5E4DF',dim='#8f8f88';
+    x.fillStyle='#050505';x.fillRect(0,0,W,H);x.fillStyle='rgba(172,185,72,.10)';for(let yy=12;yy<H;yy+=16)for(let xx=12;xx<W;xx+=16)x.fillRect(xx,yy,3,3);
+    x.fillStyle=g;const R=(a,b,w,h)=>x.fillRect(a,b,w,h);R(36,24,W-72,6);R(36,H-30,W-72,6);R(24,36,6,H-72);R(W-30,36,6,H-72);R(30,30,6,6);R(W-36,30,6,6);R(30,H-36,6,6);R(W-36,H-36,6,6);
+    if(logo)x.drawImage(logo,70,62,190,60);
+    x.textBaseline='alphabetic';x.textAlign='right';x.fillStyle=iv;x.font='700 22px JBMono, monospace';x.fillText('COMPASS AI UPGRADE',W-70,86);x.fillStyle=dim;x.fillText('ИГРЫ ПУЛЬТА',W-70,116);
+    x.textAlign='left';x.font='400 92px Silkscreen, JBMono, monospace';x.fillStyle='#1d1f12';x.fillText('DEEPCORE',76,250);x.fillStyle=g;x.fillText('DEEPCORE',70,244);
+    x.font='400 170px Silkscreen, JBMono, monospace';x.fillStyle=iv;const sc=String(o.score);x.fillText(sc,64,440);const sw=x.measureText(sc).width;
+    x.font='700 26px JBMono, monospace';x.fillStyle=dim;x.fillText('ОЧКОВ',84+sw,436);
+    if(o.rec){x.fillStyle=g;x.fillRect(70,466,360,50);x.fillStyle='#000';x.font='700 28px JBMono, monospace';x.fillText('НОВЫЙ РЕКОРД!',88,501);}
+    else{x.fillStyle=dim;x.font='700 22px JBMono, monospace';x.fillText('ЛИЧНЫЙ РЕКОРД '+o.best,72,500);}
+    const s=18,aw=ART[0].length*s;x.fillStyle=g;ART.forEach((r,yy)=>{for(let xx=0;xx<r.length;xx++)if(r[xx]==='#')x.fillRect(W-110-aw+xx*s,160+yy*s,s,s);});
+    x.textAlign='right';x.font='700 24px JBMono, monospace';x.fillStyle=iv;(o.lines||[]).forEach((l,i)=>x.fillText(l,W-80,410+i*38));
+    x.fillStyle='#3a3a36';x.fillRect(70,548,W-140,2);x.textAlign='left';x.fillStyle=g;x.font='400 26px Silkscreen, JBMono, monospace';x.fillText(date(),70,586);
+    x.textAlign='right';x.fillStyle=dim;x.font='700 20px JBMono, monospace';x.fillText('СМОЖЕТЕ БОЛЬШЕ?',W-70,584);return c;}
+  // o: {key, score, lines[]} → HTML-блок для экрана итогов
+  function block(o){const b=best(o.key,o.score);cur={...o,...b};cv=draw(cur);url=cv.toDataURL('image/png');
+    window.__lastRec={key:o.key,score:o.score,rec:b.rec,w:cv.width,h:cv.height};
+    return `<div class="rec7"><img id="rec7img" src="${url}" alt="Плашка рекорда"><div class="rec7b"><button class="btn" data-act="rec7save">Скачать картинку</button><button class="btn alt" data-act="rec7copy">Скопировать картинку</button><small>Плашку можно кинуть в группу</small></div></div>`;}
+  function save(){if(!cur)return;const a=document.createElement('a');a.download='compass-deepcore-'+cur.score+'.png';a.href=url;window.__lastDownload=a.download;document.body.appendChild(a);a.click();a.remove();toast('Картинка сохранена в «Загрузки»');}
+  async function copy(){if(!cv)return;try{const b=await new Promise(r=>cv.toBlob(r,'image/png'));await navigator.clipboard.write([new ClipboardItem({'image/png':b})]);window.__lastCopiedImg=b.size;toast('Картинка скопирована · вставьте в группу: Ctrl+V');}
+    catch(e){window.__lastCopiedImg=-1;toast('Скопировать не вышло · нажмите «Скачать картинку»');}}
+  return {block,save,copy};
 })();
 
 /* ================= WebGL world renderer (three.js) ================= */
@@ -4539,12 +4781,17 @@ const MONO=(()=>{
   const PAL=[[0,0,0],[0,0,0],[0,0,0],[0,0,0],[0,0,0],[172,185,72],[172,185,72],[230,245,156],[255,255,255]];
   const q=new THREE.Scene(),qc=new THREE.OrthographicCamera(-1,1,1,-1,0,1);
   const mat=new THREE.ShaderMaterial({depthTest:false,depthWrite:false,
-    uniforms:{tC:{value:null},tD:{value:null},res:{value:new THREE.Vector2(1,1)},cn:{value:0.03},cf:{value:80},tm:{value:0},pal:{value:PAL.map(c=>new THREE.Vector3(c[0]/255,c[1]/255,c[2]/255))},tG:{value:(()=>{const t=new THREE.DataTexture(FX5.GLYPH.atl,FX5.GLYPH.N*6,8,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;})()},gN:{value:FX5.GLYPH.N},gR:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4())},gP:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4())},uIP:{value:new THREE.Matrix4()},uCW:{value:new THREE.Matrix4()},uSt:{value:0},uCL:{value:0},uLp:{value:[0,1,2,3,4,5,6,7].map(()=>new THREE.Vector3())}},
+    uniforms:{tC:{value:null},tD:{value:null},res:{value:new THREE.Vector2(1,1)},cn:{value:0.03},cf:{value:80},tm:{value:0},pal:{value:PAL.map(c=>new THREE.Vector3(c[0]/255,c[1]/255,c[2]/255))},tG:{value:(()=>{const t=new THREE.DataTexture(FX5.GLYPH.atl,FX5.GLYPH.N*6,8,THREE.RGBAFormat);t.magFilter=t.minFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;return t;})()},gN:{value:FX5.GLYPH.N},gR:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4())},gP:{value:[0,1,2,3,4,5].map(()=>new THREE.Vector4())},uIP:{value:new THREE.Matrix4()},uCW:{value:new THREE.Matrix4()},uSt:{value:0},uCL:{value:0},uLp:{value:[0,1,2,3,4,5,6,7].map(()=>new THREE.Vector3())},tA:{value:null},uAs:{value:new THREE.Vector2(1,1)},uDL:{value:[0,1,2,3,4,5,6,7].map(()=>new THREE.Vector4(0,0,1,0))}},
     vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position.xy,0.,1.);}',
-    fragmentShader:`uniform sampler2D tC,tD,tG;uniform vec2 res;uniform float cn,cf,tm,gN;uniform vec3 pal[9];uniform vec4 gR[6],gP[6];uniform mat4 uIP,uCW;uniform float uSt,uCL;uniform vec3 uLp[8];varying vec2 vUv;
+    fragmentShader:`uniform sampler2D tC,tD,tG;uniform vec2 res;uniform float cn,cf,tm,gN;uniform vec3 pal[9];uniform vec4 gR[6],gP[6];uniform mat4 uIP,uCW;uniform float uSt,uCL;uniform vec3 uLp[8];uniform sampler2D tA;uniform vec2 uAs;uniform vec4 uDL[8];varying vec2 vUv;
 vec3 WP(vec2 u){float d=texture2D(tD,u).x;vec4 v=uIP*vec4(u*2.-1.,d*2.-1.,1.);v/=v.w;return (uCW*vec4(v.xyz,1.)).xyz;}
 float lin(vec2 u){float z=texture2D(tD,u).x*2.-1.;return 2.*cn*cf/(cf+cn-z*(cf-cn));}
 float hs(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}
+float VN(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(hs(i),hs(i+vec2(1.,0.)),f.x),mix(hs(i+vec2(0.,1.)),hs(i+vec2(1.,1.)),f.x),f.y);}
+/* v7: кислота рядом (размытая карта клеток), сама клетка — кислота? и свет выстрелов, снарядов, взрывов */
+float AG(vec2 p){return texture2D(tA,p/uAs).r;}
+float AR(vec2 p){return texture2D(tA,(floor(p)+.5)/uAs).g;}
+float DLT(vec3 w){float s=0.;for(int k=0;k<8;k++){vec4 L=uDL[k];if(L.w<=0.)continue;float r=length(vec3(w.x-L.x,(w.y-.42)*1.4,w.z-L.y))/L.z;if(r<1.){float f=1.-r;s+=L.w*f*f;}}return s;}
 float LU(vec3 c){return mix(dot(c,vec3(.2126,.7152,.0722)),max(c.r,max(c.g,c.b)),.35);}
 float b2(vec2 a){a=floor(a);return fract(dot(a,vec2(.5,a.y*.75)));}
 float b4(vec2 a){return b2(.5*a)*.25+b2(a);}
@@ -4554,8 +4801,33 @@ bool GW(vec2 u){float a=texture2D(tC,u).a;return a>.62&&a<.70;}
 float GL(float g,vec2 f){return texture2D(tG,vec2((g*6.+f.x+.5)/(6.*gN),(f.y+.5)/8.)).a;}
 void main(){vec4 s0=texture2D(tC,vUv);vec3 c=s0.rgb;float al=s0.a,l=LU(c);vec2 px=1./res;vec2 fc=gl_FragCoord.xy;float bb=b4(fc);
  bool dc=al>.835&&al<.858,dr=al>.972&&al<.997,lk=al>.972&&al<.982,ex=al>.990&&al<.997;
+ bool ac=al>.555&&al<.605,lv=al>.505&&al<.555;
  bool en=al>.77&&al<.83,it=al>.86&&al<.895,fx=al>.9&&al<.925,fl=al>.935&&al<.97,so=al>.70&&al<.77,gw=al>.62&&al<.70;
  vec3 o=pal[0];float pu=.5+.5*sin(tm*2.4);
+
+ if(ac||lv){
+  /* v7: кислота — светится, течёт, блики бегут, пузыри растут и лопаются, у берега пена; вдали не гаснет */
+  vec3 w=WP(vUv);float dd=lin(vUv),t=tm*(lv?1.5:1.);
+  vec2 q=(floor(w.xz*20.)+.5)/20.;
+  float n1=VN(q*1.7+vec2(t*.23,t*.12)),n2=VN(q*3.4+vec2(-t*.29,t*.21)),n=n1*.6+n2*.4;
+  float V=1.0+.5*n+(lv?.6:0.);
+  float cs=abs(fract(n1*3.1+n2*1.7-t*.42)-.5);V+=2.1*smoothstep(.045,0.,cs)*smoothstep(.4,.75,n2);
+  vec2 g=q*1.6,gi=floor(g),gf=fract(g)-.5;float h=hs(gi+7.31),per=1.6+2.4*hs(gi+2.7),ph=fract(t/per+h*13.);
+  vec2 bc=(vec2(hs(gi+1.3),hs(gi+4.9))-.5)*.36;float bd=length(gf-bc);
+  if(h>.38){
+   if(ph<.78){float r=.07+.25*ph/.78;if(bd<r){V=max(V,1.4);if(bd>r-.07)V=3.2;else if(length(gf-bc+vec2(r*.35,-r*.35))<r*.3)V=3.6;}}
+   else if(ph<.9){float r=.32+.26*(ph-.78)/.12;if(abs(bd-r)<.05)V=3.8;}
+  }
+  vec2 fx=fract(w.xz);float e=1.;
+  if(AR(w.xz-vec2(1.,0.))<.5)e=min(e,fx.x);if(AR(w.xz+vec2(1.,0.))<.5)e=min(e,1.-fx.x);
+  if(AR(w.xz-vec2(0.,1.))<.5)e=min(e,fx.y);if(AR(w.xz+vec2(0.,1.))<.5)e=min(e,1.-fx.y);
+  e+=.035*sin(t*3.2+(q.x+q.y)*11.);
+  if(e<.045)V=max(V,3.4);else if(e<.11)V+=.75;
+  V*=.9+.12*sin(t*1.8+n*5.);
+  V*=mix(1.,.78,smoothstep(8.,18.,dd));V+=1.4*DLT(w);
+  float L=floor(clamp(V,0.,4.2)+bb*.999);
+  o=L<.5?pal[5]*.2:L<1.5?pal[5]*.48:L<2.5?pal[5]:L<3.5?pal[7]:pal[8];
+ }else
  if(so){
   /* сплошное: плавная заливка без растра, свет сверху и туман дают объём */
   float v=max(smoothstep(.05,.78,l),texture2D(tD,vUv).x<.99995?.09:0.);o=mix(pal[0],pal[5],v);if(l>.84)o=mix(pal[5],pal[7],smoothstep(.84,1.,l));
@@ -4625,9 +4897,11 @@ void main(){vec4 s0=texture2D(tC,vUv);vec3 c=s0.rgb;float al=s0.a,l=LU(c);vec2 p
     if(w0.y<.012+dcw*.0035)T=max(T,.95);                                                      /* светлая линия: стык стены с полом */
     if(w0.y>.988-dcw*.0035)T*=.35;                                                            /* тень: стык с потолком */
    }
+   {float ag=AG(w0.xz);if(ag>.01){float gp=.72+.28*sin(tm*2.1+w0.x*1.3+w0.z*.9);T+=(isC?.14:isF?.36:.3)*ag*gp*(1.-clamp(w0.y,0.,1.)*.55);}}   /* v7: свет кислоты на пол и стены */
+   T+=.62*DLT(w0);                                                                                 /* v7: свет выстрелов, снарядов, взрывов */
    T=max(T,.09);                                                                              /* туман гасит в тёмный Pistachio */
    if(l>.92)T=1.;
-   o=pal[5]*min(T,1.);if(l>.95)o=mix(pal[5],pal[7],smoothstep(.95,1.,l));
+   o=pal[5]*min(T,1.);if(T>1.08&&(T-1.08)*1.6>bb)o=pal[7];if(l>.95)o=mix(pal[5],pal[7],smoothstep(.95,1.,l));
   }
  }
  if(en){if(!EN(vUv+vec2(0.,px.y))||!EN(vUv-vec2(px.x,0.)))o=pal[7];}
@@ -4668,7 +4942,7 @@ void main(){vec4 s0=texture2D(tC,vUv);vec3 c=s0.rgb;float al=s0.a,l=LU(c);vec2 p
     rt=new THREE.WebGLRenderTarget(w,h,{minFilter:THREE.NearestFilter,magFilter:THREE.NearestFilter,generateMipmaps:false});
     rt.depthTexture=new THREE.DepthTexture(w,h);rt.depthTexture.type=THREE.UnsignedIntType;mat.uniforms.res.value.set(w,h);}
   function render(sc,c){if(!rt)size(W,H);GL.setRenderTarget(rt);GL.render(sc,c);GL.setRenderTarget(null);
-    mat.uniforms.tC.value=rt.texture;mat.uniforms.tD.value=rt.depthTexture;mat.uniforms.cn.value=c.near;mat.uniforms.cf.value=c.far;mat.uniforms.tm.value=performance.now()/1000;{const R=FX5.R4,Q=FX5.P4,u=mat.uniforms;for(let k=0;k<6;k++){u.gR.value[k].set(R[k*4],R[k*4+1],R[k*4+2],R[k*4+3]);u.gP.value[k].set(Q[k*4],Q[k*4+1],Q[k*4+2],Q[k*4+3]);}u.uIP.value.copy(c.projectionMatrixInverse);u.uCW.value.copy(c.matrixWorld);u.uSt.value=OBJ6.style;u.uCL.value=(curDef&&FX5.solidCeil(curDef.ceil||0)&&(!skyMode||winMode))?1:0;{const Ls=lamps.filter(L=>L.on&&!(lampsOut&&!L.flick)).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));for(let n=0;n<8;n++){const L=Ls[n];if(L)u.uLp.value[n].set(L.x,L.y,1);else u.uLp.value[n].set(0,0,0);}}}GL.render(q,qc);}
+    mat.uniforms.tC.value=rt.texture;mat.uniforms.tD.value=rt.depthTexture;mat.uniforms.cn.value=c.near;mat.uniforms.cf.value=c.far;mat.uniforms.tm.value=performance.now()/1000;{const R=FX5.R4,Q=FX5.P4,u=mat.uniforms;for(let k=0;k<6;k++){u.gR.value[k].set(R[k*4],R[k*4+1],R[k*4+2],R[k*4+3]);u.gP.value[k].set(Q[k*4],Q[k*4+1],Q[k*4+2],Q[k*4+3]);}u.uIP.value.copy(c.projectionMatrixInverse);u.uCW.value.copy(c.matrixWorld);u.uSt.value=OBJ6.style;u.uCL.value=(curDef&&FX5.solidCeil(curDef.ceil||0)&&(!skyMode||winMode))?1:0;{const Ls=lamps.filter(L=>L.on&&!(lampsOut&&!L.flick)).sort((a,b)=>Math.hypot(a.x-P.x,a.y-P.y)-Math.hypot(b.x-P.x,b.y-P.y));for(let n=0;n<8;n++){const L=Ls[n];if(L)u.uLp.value[n].set(L.x,L.y,1);else u.uLp.value[n].set(0,0,0);}}}FX7.uni(mat.uniforms);GL.render(q,qc);}
   return {size,render};
 })();
 const MAXANI=Math.min(isTouch?4:8,GL.capabilities.getMaxAnisotropy());
@@ -4692,7 +4966,7 @@ function glTex(pix,repeat){
 }
 const MATC={};
 function worldMat(key,pix,basic){
-  if(MATC[key])return MATC[key];if(key==='W7b'){MATC[key]=new THREE.MeshBasicMaterial({map:glTex(OBJ6.tex.EXIT,true),fog:false,opacity:0.992,side:THREE.DoubleSide});return MATC[key];}if(key[0]==='Z'){const mm=worldMat0(key,pix,basic);mm.opacity=(key==='ZGR'||key==='ZL6')?FX5.OP.G:FX5.OP.S;return mm;}if(/^(F|SL|WA)/.test(key)){const mm=worldMat0(key,pix,basic);mm.opacity=0.95;return mm;}return worldMat0(key,pix,basic);}
+  if(MATC[key])return MATC[key];if(key==='W7b'){MATC[key]=new THREE.MeshBasicMaterial({map:glTex(OBJ6.tex.EXIT,true),fog:false,opacity:0.992,side:THREE.DoubleSide});return MATC[key];}if(key[0]==='Z'){const mm=worldMat0(key,pix,basic);mm.opacity=(key==='ZGR'||key==='ZL6')?FX5.OP.G:FX5.OP.S;return mm;}if(/^(F|SL|WA)/.test(key)){const mm=worldMat0(key,pix,basic);mm.opacity=key==='SL'?0.58:0.95;return mm;}return worldMat0(key,pix,basic);}
 function worldMat0(key,pix,basic){
   if(MATC[key])return MATC[key];const map=glTex(pix,true),at=pix===T_WINDOW?0.5:0;
   MATC[key]=basic?new THREE.MeshBasicMaterial({map,vertexColors:true,side:THREE.DoubleSide,alphaTest:at}):new THREE.MeshPhongMaterial({map,vertexColors:true,shininess:0,specular:0x000000,side:THREE.DoubleSide,alphaTest:at});
@@ -4701,7 +4975,7 @@ function worldMat0(key,pix,basic){
 let worldGroup=null,overlayGroup=null,worldGeoms=[],doorObjs=[],cornerB=null,floorDirty=true,lightDirty=true,worldDirty=true;
 const warnMat=new THREE.MeshBasicMaterial({map:glTex(F_WARN,true),transparent:true,opacity:0.8,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
 const pudMat=new THREE.MeshBasicMaterial({map:glTex(F_SLUDGE,true),polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
-const lavMat=new THREE.MeshBasicMaterial({map:glTex(F_LAVA,true),polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});
+const lavMat=new THREE.MeshBasicMaterial({map:glTex(F_LAVA,true),polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-1});pudMat.opacity=0.58;lavMat.opacity=0.53;pudMat.fog=lavMat.fog=false;
 function wallPix(t,i){if(t===8)return WALLTEX[look[i]]||T_BRICK;if(t===12)return CRACKTEX[look[i]]||CRACKTEX[1];return WALLTEX[t]||T_BRICK;}
 function calcCorners(){
   const CW=mw+1;if(!cornerB||cornerB.length!==CW*(mh+1))cornerB=new Float32Array(CW*(mh+1));
@@ -4773,7 +5047,7 @@ function rebuildOverlay(){
   const mk=(arr,mat,h)=>{if(!arr.length)return;const pos=[],uv=[];for(const i of arr){const x=i%mw,y=(i/mw)|0;for(const [a,b,u,v] of [[x,y,0,1],[x,y+1,0,0],[x+1,y+1,1,0],[x,y,0,1],[x+1,y+1,1,0],[x+1,y,1,1]]){pos.push(a,h,b);uv.push(u,v);}}
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));overlayGroup.add(new THREE.Mesh(geo,mat));};
   mk(lists.s,pudMat,0.004);mk(lists.l,lavMat,0.004);mk(lists.w,warnMat,0.008);
-  floorDirty=false;
+  floorDirty=false;FX7.acid(floorMap,mw,mh);
 }
 /* sprites as camera-facing billboards */
 const SPG=new THREE.PlaneGeometry(1,1);SPG.translate(0,0.5,0);
@@ -4901,7 +5175,7 @@ function render(){
     const m=takeSprite(!!s.bright);m.visible=true;m.material.opacity=s._en?0.8:s.kind==='item'?0.88:s.bright?0.91:(s.kind==='decor'||s.kind==='barrel'||s.kind==='log')?0.847:1;
     if(s._j===undefined)s._j=rnd()*0.012;
     const layer=s.kind==='item'?0.06:s.state==='dead'?0:s.type?0.035:s.kind==='decor'||s.kind==='barrel'?0.01:0.045,ep=(layer+s._j)/Math.max(0.3,dist);
-    m.position.set(s.x-dx*ep,s.z||0,s.y-dy*ep);m.scale.set(s.scale,s.scale,1);m.rotation.set(0,yaw,0);
+    m.position.set(s.x-dx*ep,s.z||0,s.y-dy*ep);{const q=FX7.sq(s);m.scale.set(s.scale*q[0],s.scale*q[1],1);}m.rotation.set(0,yaw,0);
     const map=glTex(s.tex,false);if(m.material.map!==map){m.material.map=map;m.material.needsUpdate=true;}
     if(s.bright){m.material.color.setScalar(1);return;}
     let b=Math.max(0.05,Math.min(1.4,1+lightAt(s.x,s.y)*0.047))+boost;
@@ -4922,15 +5196,15 @@ function render(){
   for(const a of allies){if(Math.hypot(a.x-P.x,a.y-P.y)<1.1)continue;const fr=ADEF[a.type].frames;a.tex=a.state==='down'?fr[3]:a.shootT>0?fr[2]:fr[(a.anim|0)&1];put(a);}
   for(let i=useLit;i<poolLit.length;i++)poolLit[i].visible=false;
   for(let i=useBright;i<poolBright.length;i++)poolBright[i].visible=false;
-  {const fdt=FX5.step(gameT,(x,y)=>solidTile(Math.floor(x),Math.floor(y)));cam.updateMatrixWorld();FX5.glitchStep(state==='play'?fdt:0,gameT,cam,W,H,enemies,e=>{const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy);return d<13&&d>1&&(dx*Math.cos(P.a)+dy*Math.sin(P.a))/d>0.55&&lineClear(P.x,P.y,e.x,e.y);},e=>e.scale||1);}
+  {const fdt=FX5.step(gameT,(x,y)=>solidTile(Math.floor(x),Math.floor(y)));FX7.step(state==='play'||state==='cine'?fdt:0);cam.updateMatrixWorld();FX5.glitchStep(state==='play'?fdt:0,gameT,cam,W,H,enemies,e=>{const dx=e.x-P.x,dy=e.y-P.y,d=Math.hypot(dx,dy);return d<13&&d>1&&(dx*Math.cos(P.a)+dy*Math.sin(P.a))/d>0.55&&lineClear(P.x,P.y,e.x,e.y);},e=>e.scale||1);}
   OBJ6.pads(scene,things);
   if(!NOGL)MONO.render(scene,cam);
   // pixel overlay: weapon, crosshair, effects
   ctx.clearRect(0,0,W,H);
   if(glitchT>0){const sy=glc.height/H;for(let i=0;i<6;i++){const y=(rnd()*H)|0,h=(2+rnd()*10)|0,dx=((rnd()-0.5)*26)|0;ctx.drawImage(glc,0,y*sy,glc.width,h*sy,dx,y,W,h);}ctx.fillStyle=`rgba(${rnd()<0.5?'255,0,60':'0,220,255'},0.07)`;ctx.fillRect(0,0,W,H);}
-  FX5.draw(ctx,cam,W,H);
+  FX5.draw(ctx,cam,W,H);FX7.draw(ctx,cam,W,H);
   if(!P.dead&&state!=='cine')drawWeapon(H>>1);
-  FX5.drawFlash(ctx,W,H);
+  FX7.drawHud(ctx,W,H);FX5.drawFlash(ctx,W,H);
   if(!P.dead){
     const cx=W>>1,cy=H>>1,hm=hitMarkT>0;
     ctx.fillStyle=hm?(critMark?'#ff5a3a':'#ffffff'):aimTarget?'rgba(255,140,110,.95)':'rgba(255,214,170,.75)';
@@ -5013,7 +5287,7 @@ function hud(){
     }
   }
   const cb=$('combo');
-  if(combo>=2&&comboT>0){cb.classList.add('on');$('comboN').textContent='×'+(Math.min(5,1+(combo-1)*0.5)).toFixed(1).replace('.0','');$('comboS').textContent='серия '+combo;$('comboBar').style.transform=`scaleX(${clamp(comboT/3,0,1)})`;}
+  if(combo>=2&&comboT>0){cb.classList.add('on');$('comboN').textContent='x'+(Math.min(5,1+(combo-1)*0.5)).toFixed(1).replace('.0','');$('comboS').textContent='серия '+combo;$('comboBar').style.transform=`scaleX(${clamp(comboT/3,0,1)})`;}
   else cb.classList.remove('on');
 }
 /* ===== DEEPCORE v6: карта для заблудившихся (13.11) — мини-карта крупнее и вся карта по M; 1-bit, Pistachio =====
@@ -5163,7 +5437,7 @@ function showResults(r){
       <div><span>Время</span><b>${fmt(levelTime)}</b></div><div><span>Очки</span><b>${fmtN(score)}</b></div></div></div>
     <p class="stars big">${stars(r.stars)}</p>${r.bonus?`<p class="bonus">Бонусы: ${r.bonus}</p>`:''}
     ${last||lvlIdx===7?'':`<p class="tip">Дальше: ${LEVELS[lvlIdx+1].name}. ${LEVELS[lvlIdx+1].brief||''}</p>`}
-    <div class="btns"><button class="btn" data-act="next">${last?'Дальше':'Следующий сектор'}</button><button class="btn alt" data-act="menu">В меню</button></div></div>`,true);
+    ${REC7.block({key:'s'+lvlIdx,score,lines:[curDef.name.toUpperCase(),'РАНГ '+r.rank,'ВРАГИ '+kills+'/'+enemyCount]})}<div class="btns"><button class="btn" data-act="next">${last?'Дальше':'Следующий сектор'}</button><button class="btn alt" data-act="menu">В меню</button></div></div>`,true);
 }
 function pickPerks(n){
   const pool=PERKS.filter(p=>!(p.id==='second'&&MOD.second)&&!(p.id==='armor'&&MOD.armorAbs>0.5&&P.armor>=150));
@@ -5185,7 +5459,7 @@ function runOver(){
     <div class="stats"><div><span>Бездна</span><b>${depth}</b></div><div><span>Очки</span><b>${fmtN(score)}</b></div><div><span>Лучшая серия</span><b>${maxCombo}</b></div></div>
     ${rec?'<p class="tip">Новый рекорд!</p>':`<p class="bonus">Рекорд: Бездна ${PROG.bestDepth} · ${fmtN(PROG.bestScore)} очков</p>`}
     ${MOD.taken.length?`<p class="bonus">Усиления: ${MOD.taken.join(', ')}</p>`:''}
-    <div class="btns"><button class="btn" data-act="endless">Ещё забег</button><button class="btn alt" data-act="menu">В меню</button></div></div>`,true);
+    ${REC7.block({key:'abyss',score,lines:['БЕЗДНА '+depth,'ЛУЧШАЯ СЕРИЯ '+maxCombo]})}<div class="btns"><button class="btn" data-act="endless">Ещё забег</button><button class="btn alt" data-act="menu">В меню</button></div></div>`,true);
 }
 function showFakeEnd(){
   state='win';setMenuMode(true);lockOff();
@@ -5306,6 +5580,8 @@ ov.addEventListener('click',e=>{
     case 'next':if(lvlIdx===7)showFakeEnd();else if(lvlIdx<LEVELS.length-1){snap=null;startLevel(LEVELS[lvlIdx+1],lvlIdx+1);}else showVictory();break;
     case 'perk':{const p=perkChoices[+b.dataset.i];if(!p)break;p.apply();MOD.taken.push(p.name);nextDepth();break;}
     case 'menu':toMenu();break;
+    case 'rec7save':REC7.save();break;
+    case 'rec7copy':REC7.copy();break;
   }
 });
 
@@ -5317,6 +5593,7 @@ const EMBED=window.parent!==window;if(EMBED)document.body.classList.add('embed')
 function toPult(){try{window.parent.postMessage({deepcore:'exit'},'*');}catch(_){}}
 $('toPult').addEventListener('click',e=>{e.stopPropagation();toPult();});
 addEventListener('keydown',e=>{
+  if(e.code==='KeyN'&&!e.repeat){snd7Toggle();e.preventDefault();return;}
   if(e.code==='KeyM'&&(state==='play'||state==='paused')){document.body.classList.toggle('bigmap');e.preventDefault();return;}
   if(EMBED&&e.code==='Escape'&&state==='menu'){toPult();return;}
   if(state==='cine'){skipCine();e.preventDefault();return;}
@@ -5407,7 +5684,7 @@ bs.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();ini
 addEventListener('contextmenu',e=>e.preventDefault());
 document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state==='play')pause();if(AC&&AC.state==='running')AC.suspend();}else if(AC&&state!=='menu')AC.resume();});
 
-if(location.hash.startsWith('#dev')){window.__fx5=FX5;window.__explode=explode;}
+if(location.hash.startsWith('#dev')){window.__fx7=FX7;window.__fx5=FX5;window.__explode=explode;}
 /* ================= resize & loop ================= */
 function resize(){
   const r=cvs.getBoundingClientRect(),cw=Math.max(1,r.width),ch=Math.max(1,r.height),t=isTouch?300:360,s=Math.max(2,Math.round(Math.min(cw,ch)/t))+(SET.qual===2?1:0)+(SET.qual===0?autoScale:0);
@@ -5424,7 +5701,7 @@ function loop(t){
   if(state==='play'&&SET.qual===0&&raw<0.5){perfN++;perfT+=raw;if(perfN>=90){const avg=perfT/perfN;perfN=0;perfT=0;if(avg>1/40&&autoScale<2){autoScale++;resize();}}}else{perfN=0;perfT=0;}
   if(state==='play'){
     let sdt=dt;
-    if(slowT>0){slowT-=dt;sdt=dt*0.35;}
+    if(slowT>0){slowT-=dt;sdt=dt*0.35;}if(FX7.hs>0){FX7.hs-=dt;sdt*=0.12;}
     update(sdt,dt);
     cineUpdate(dt);radioUpdate(dt);
   }else if(state==='cine'){gameT+=dt;cineUpdate(dt);radioUpdate(dt);
