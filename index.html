@@ -649,6 +649,95 @@ body.tour.nbhide .nb{display:flex}
 body.tour.nbhide .tourb{right:224px}
 @media (prefers-reduced-motion:reduce){#tourHoles rect,.tfr,#tourKey,.tcap{transition:none}#tourKey.pulse{animation:none}}
 /*<TOUR*/
+/*NOV>*/
+/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2) ================= */
+/* кнопка входа: в полном пульте — яркий язычок на верхней рамке слева; в режиме новичка — маленькая «← Полный пульт» в правом углу шапки */
+.novb{position:absolute;left:120px;top:0;z-index:6;display:inline-flex;align-items:center;gap:12px;height:40px;padding:0 18px 0 6px;border:2px solid var(--g);background:var(--g);color:#000;font:800 18px var(--fm);letter-spacing:.14em;white-space:nowrap;box-shadow:0 0 18px 2px rgba(172,185,72,.5);transition:background .15s,color .15s,box-shadow .15s;animation:novGlow 2.4s ease-in-out infinite}
+.novb b{display:inline-block;width:30px;height:30px;background:#000;color:var(--g);font:600 21px/30px var(--fx);text-align:center;letter-spacing:0}
+.novb small{font:600 15px var(--fd);letter-spacing:0;text-transform:none;padding-left:12px;border-left:2px solid rgba(0,0,0,.35)}
+.novb:hover,.novb:focus-visible{background:#000;color:var(--g);box-shadow:0 0 26px 4px rgba(172,185,72,.6);outline:none;animation:none}
+.novb:hover b,.novb:focus-visible b{background:var(--g);color:#000}
+.novb:hover small,.novb:focus-visible small{border-left-color:rgba(172,185,72,.4)}
+@keyframes novGlow{0%,100%{box-shadow:0 0 14px 1px rgba(172,185,72,.4)}50%{box-shadow:0 0 30px 6px rgba(172,185,72,.7)}}
+body.fxoff .novb{animation:none}
+body.m .novb,body.playing .novb,body.tvopen .novb,body.tour .novb{display:none}
+body.nov .novb{left:auto;right:120px;top:50px;height:44px;padding:0 16px 0 6px;font-size:15px;gap:10px;background:#000;color:var(--g);border-width:2px;box-shadow:4px 4px 0 #1d1f12;animation:none}
+body.nov .novb b{width:30px;height:30px;font-size:18px;line-height:30px;background:var(--g);color:#000}
+body.nov .novb:hover,body.nov .novb:focus-visible{background:var(--g);color:#000}
+body.nov .novb:hover b,body.nov .novb:focus-visible b{background:#000;color:var(--g)}
+
+/* режим новичка: всё лишнее исчезает, движения нет */
+#nov{display:none}
+body.nov:not(.m) #nov{display:block}
+body.nov:not(.m) #fx,body.nov:not(.m) [data-claudes],body.nov:not(.m) #pods,body.nov:not(.m) #arena,body.nov:not(.m) #spine,body.nov:not(.m) #deco,
+body.nov:not(.m) .nb,body.nov:not(.m) .tourb,body.nov:not(.m) .ftr .lg,body.nov:not(.m) #toast,body.nov:not(.m) .game,
+body.nov:not(.m) .hdr>*:not(.logo):not(.crumb):not(.hsp){display:none!important}
+body.nov:not(.m) #stage *:not(.novb){animation:none!important}
+
+#nov{position:absolute;left:120px;top:126px;width:1680px;height:890px;font-family:var(--fd);color:var(--iv)}
+/* прогресс: ← Назад · 1 — 2 — 3 — ★ */
+.npg{position:absolute;left:290px;top:0;width:1100px;height:70px;display:flex;align-items:center;gap:24px}
+.npg .nbk{flex:0 0 auto;height:44px;padding:0 14px;border:2px solid #3b3e22;color:var(--iv);font:700 17px var(--fd);white-space:nowrap}
+.npg .nbk:hover,.npg .nbk:focus-visible{border-color:var(--g);color:var(--w);outline:none}
+.npg .nbk:disabled{opacity:.3;cursor:default;border-color:#3b3e22;color:var(--iv)}
+.npg ol{flex:1;display:flex;align-items:center;margin:0;padding:0;list-style:none}
+.npg ol>i{flex:1;height:3px;margin:0 10px;background:#3b3e22}
+.npg li button{display:flex;align-items:center;gap:10px;padding:4px 6px;color:var(--dim);font:600 18px var(--fd);white-space:nowrap}
+.npg li b{display:inline-block;width:40px;height:40px;border:3px solid #3b3e22;color:var(--dim);font:600 22px/34px var(--fx);text-align:center}
+.npg li.nvok b{background:#2c3014;border-color:var(--g);color:var(--g)}
+.npg li.nvnow button{color:var(--w)}
+.npg li.nvnow b{background:var(--g);border-color:var(--g);color:#000}
+.npg li button:hover,.npg li button:focus-visible{color:var(--w);outline:none}
+.npg li button:hover b,.npg li button:focus-visible b{border-color:var(--g)}
+/* один шаг — по центру, крупно */
+.ncard{position:absolute;left:290px;top:96px;width:1100px;max-height:794px;overflow:hidden;background:#050505;border:3px solid var(--g);box-shadow:10px 10px 0 #1d1f12;padding:40px 56px 44px;display:flex;flex-direction:column}
+.ncard .nk{font:700 19px var(--fm);letter-spacing:.2em;color:var(--g);text-transform:uppercase}
+.ncard h2{margin:10px 0 6px;font:800 52px/1.1 var(--fd);color:var(--w)}
+.ncard .nw{margin:12px 0 0;font:400 26px/1.4 var(--fd);color:var(--iv)}
+.ncard .nw b{color:var(--w)}
+.ncard .nst{margin:22px 0 0;padding:0;list-style:none;counter-reset:n}
+.ncard .nst li{counter-increment:n;position:relative;min-height:42px;padding-left:60px;margin-top:14px;font:400 25px/1.4 var(--fd);color:var(--iv)}
+.ncard .nst li::before{content:counter(n);position:absolute;left:0;top:0;width:40px;height:40px;border:2px solid var(--g);color:var(--g);font:600 24px/36px var(--fx);text-align:center}
+.ncard .nacts{margin-top:30px;display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.ncard .nmain{height:80px;padding:0 40px;font:800 28px var(--fd);box-shadow:8px 8px 0 #1d1f12}
+.ncard .nsub{font:400 20px var(--fd);color:var(--dim)}
+.ncard .nq{padding:0;background:none;border:0;color:var(--iv);font:inherit;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.ncard .nq:hover,.ncard .nq:focus-visible{color:var(--w);outline:none}
+.ncard .copied{min-height:24px;font:400 20px var(--fp);color:var(--g)}
+.ncard .nnext{align-self:flex-start;margin-top:10px;height:70px;padding:0 34px;border:3px solid var(--g);color:var(--w);font:700 26px var(--fd);white-space:nowrap;transition:background .15s,color .15s}
+.ncard .nnext:hover,.ncard .nnext:focus-visible{background:var(--g);color:#000;outline:none}
+.ncard .nnext.ghost{border-color:#3b3e22;color:var(--iv);font-size:22px;height:60px}
+/* финальный экран */
+.nfin{align-items:center;text-align:center;padding-top:56px;padding-bottom:56px}
+.nfin .nstar{width:96px;height:96px;background:var(--g);color:#000;font:600 60px/96px var(--fx)}
+.nfin .nclaude{display:block;image-rendering:pixelated}
+.nfin h2{margin-top:26px}
+.nfin .nmore{margin-top:44px;padding-top:34px;border-top:2px dashed var(--dk);width:100%;display:flex;flex-direction:column;align-items:center;gap:18px}
+.nfin .nmore>span{font:700 26px var(--fd);color:var(--iv)}
+.nfin .nmore>.nmb{height:64px;min-width:420px;padding:0 30px;border:3px solid #3b3e22;color:var(--w);font:700 24px var(--fd);white-space:nowrap}
+.nfin .nmore>.nmb:hover,.nfin .nmore>.nmb:focus-visible{border-color:var(--g);background:#11130a;outline:none}
+/* «Хотите больше?» — блок крупно */
+.nx .nbd{flex:0 0 auto;padding-bottom:4px}
+.nx h2{font-size:42px}
+.nx .nw{font-size:23px}
+.nx .nst li{font-size:22px}
+.ncard .nsk{margin-top:16px;display:flex;flex-wrap:wrap;gap:10px}
+.ncard .nsk span{padding:6px 12px;border:2px solid #3b3e22;font:400 18px var(--fd);color:var(--iv);white-space:nowrap}
+.ncard .nsk span b{font:400 18px var(--fp);color:var(--w)}
+.ncard.dense{padding-top:30px;padding-bottom:30px}
+.ncard.dense h2{font-size:38px}
+.ncard.dense .nw{font-size:20px}
+.ncard.dense .nst li{font-size:19px;margin-top:8px}
+.ncard.dense .nacts{margin-top:18px}
+@media (prefers-reduced-motion:reduce){.novb{animation:none;transition:none}.ncard .nnext{transition:none}}
+.nx.dense .nst li{margin-top:6px;min-height:36px}
+.nx.dense .nst li::before{width:34px;height:34px;font-size:20px;line-height:30px}
+.nx.dense .nacts{margin-top:14px;gap:8px}
+.nx.dense .nmain{height:68px;font-size:24px}
+.nx.dense .nnext.ghost{height:52px;margin-top:4px}
+.nx.dense .nsk span{font-size:16px;padding:4px 10px}
+.nx.dense .nsk span b{font-size:16px}
+/*<NOV*/
 </style>
 </head>
 <body>
@@ -704,9 +793,11 @@ body.tour.nbhide .tourb{right:224px}
 <div class="abs hline"></div>
 <div class="abs nb" id="nb"><span class="q">Вы здесь впервые? Три шага:</span><button class="st" data-act="route" data-to="claude-desktop"><b>1</b>Приложение Claude</button><button class="st" data-act="route" data-to="privacy"><b>2</b>Конфиденциальность</button><button class="st hw" data-act="route" data-to="homework"><b>3</b>Домашнее задание<em>до 1 декабря</em></button><span class="rest">Всё остальное — когда освоитесь.</span><button class="x" data-act="nbclose" title="Скрыть подсказку" aria-label="Скрыть подсказку">СКРЫТЬ ✕</button></div>
 <!--TOUR>--><button class="tourb" id="tourBtn" type="button" aria-haspopup="dialog" title="Пройти обучение по пульту: что где находится"><b>?</b>Как пользоваться пультом</button><!--<TOUR-->
+<!--NOV>--><button class="novb" id="novBtn" type="button" aria-pressed="false"></button><!--<NOV-->
 <div class="abs frame" aria-hidden="true"></div>
 
 <div id="pods"></div>
+<!--NOV>--><div id="nov" aria-label="Режим новичка"></div><!--<NOV-->
 
 <div class="abs" id="arena">
   <i class="corner" style="left:0;top:0;border-left-width:2px;border-top-width:2px"></i>
@@ -2056,6 +2147,130 @@ addEventListener('resize',fit);
 $('#glossBtn').hidden=!GLOSS.length;$('#glossBtn').onclick=()=>{if(mode!=='cursor')setMode('cursor');showGloss();$('#glossBtn').blur()};
 lessonsHead();drawDeco();build();threadMarks();footerIdle();fxStart();$('#card').innerHTML=idleHTML();fit();
 window.__console={THREADS,SLOTS,GROUPS,ITEMS,setMode,get mode(){return mode},get game(){return game},KEY,PODS};
+/*NOV>*/
+/* ================= NOVICE · режим новичка, по одному шагу (13.11, v2) =================
+   Кнопка «Режим новичка» ⇄ «Полный пульт». На экране — один шаг крупно: «Шаг N из 3», что это, что сделать, одна главная кнопка, «Готово — дальше →».
+   После шага 3 — «Готово! Всё главное сделано» и «Хотите больше?»: MasterHub и Skills, Коннекторы.
+   Браузер помнит режим и шаг (ключ compass_novice: {"on":1,"step":0..3}). «Готово — дальше» ставит отметку «сделано» — общую с полным пультом.
+   Тексты и ссылки — из content.json (те же ITEMS). ?novice=1 / ?novice=0 — включить / выключить сразу. */
+const NOVICE=(()=>{
+const NK='compass_novice',btn=$('#novBtn'),box=$('#nov');
+if(!btn||!box)return null;
+const first=t=>{t=String(t||'').replace(/\*\*/g,'');const m=/^[^:.!?]+[.!?]?/.exec(t);let s=(m?m[0]:t).trim();if(!/[.!?]$/.test(s))s+='.';return s};
+const plain=t=>String(t||'').replace(/\*\*/g,'');
+// три шага; фразы — из описания пункта (у домашнего задания — первая фраза и срок)
+const STEPS=[
+ {id:'claude-desktop',h:'Установка',say:it=>[plain(it.what)]},
+ {id:'privacy',h:'Конфиденциальность',say:it=>[plain(it.what)]},
+ {id:'homework',h:'Домашнее задание',say:it=>[first(it.what),dueOf(it)?'Срок — '+dueOf(it)+'.':''].filter(Boolean)}
+].filter(s=>ITEMS[s.id]);
+const MORE=[{k:'mh',id:'masterhub',h:'MasterHub и Skills'},{k:'cn',id:'google-workspace',h:'Коннекторы'}].filter(m=>ITEMS[m.id]);
+const N=STEPS.length,DONE=N;
+let ST={on:0,step:null},view=null; // view: null — шаг; 'mh' | 'cn' — блок из «Хотите больше?»
+try{const v=JSON.parse(localStorage.getItem(NK)||'null');if(v&&typeof v==='object')ST={on:v.on?1:0,step:Number.isInteger(v.step)&&v.step>=0&&v.step<=DONE?v.step:null}}catch(e){}
+const save=()=>{try{localStorage.setItem(NK,JSON.stringify(ST))}catch(e){}};
+const firstOpen=()=>{const i=STEPS.findIndex(s=>!MARK[s.id]);return i<0?DONE:i};
+if(ST.step===null)ST.step=firstOpen();
+// главная кнопка шага — одна; вторая — только если без неё шаг не сделать (тише, строкой ниже)
+function mainAct(it){
+  if(it.id==='masterhub'){const [d1,d2]=mhDl(),mine=IS_MAC?'copy2':'copy',other=IS_MAC?'copy':'copy2';
+    return {main:d1?`<a class="btn nmain" data-act="open" href="${esc(d1.url)}" target="_blank" rel="noopener" download>↓ Скачать MasterHub</a>`:'',
+      sub:(it[mine]?`<button class="nq" type="button" data-act="${mine}">${esc(copyName(it[mine+'Label']))}</button>`:'')+(d2?` · <a class="nq" data-act="open" href="${esc(d2.url)}" target="_blank" rel="noopener" download>архив для ${esc(d2.label)} ↓</a>`:'')+(it[other]?` · <button class="nq" type="button" data-act="${other}">промпт для ${esc(it[other+'Label'])}</button>`:'')}}
+  const dl=/^Скачать архив/.test(it.urlLabel);
+  const link=it.url&&it.status!=='soon'?`href="${esc(it.url)}" target="_blank" rel="noopener"${dl?' download':''}`:'';
+  if(it.copyFirst||it.id==='homework')return {main:it.copy?`<button class="btn nmain" type="button" data-act="copy">${esc(copyName(it.copyLabel))}</button>`:'',
+    sub:it.id==='homework'?'':(link?`<a class="nq" data-act="open" ${link}>${esc(it.urlLabel)} ${dl?'↓':'↗'}</a>`:'')};
+  return {main:link?`<a class="btn nmain" data-act="open" ${link}>${esc(it.urlLabel||'Открыть')} ${dl?'↓':'↗'}</a>`:'',sub:''}}
+function progress(){
+  return `<nav class="npg" aria-label="Шаги"><button class="nbk" type="button" data-nv="back"${ST.step===0&&!view?' disabled':''}>← Назад</button><ol>`+
+   STEPS.map((s,i)=>`<li class="${i===ST.step&&!view?'nvnow':''}${MARK[s.id]?' nvok':''}"><button type="button" data-go="${i}" aria-current="${i===ST.step&&!view?'step':'false'}"><b>${MARK[s.id]?'✓':i+1}</b><span>${esc(s.h)}</span></button></li>`).join('<i aria-hidden="true"></i>')+
+   `<i aria-hidden="true"></i><li class="${ST.step===DONE?'nvnow':''}${STEPS.every(s=>MARK[s.id])?' nvok':''}"><button type="button" data-go="${DONE}"><b>★</b><span>Готово</span></button></li></ol></nav>`}
+function stepHTML(i){const s=STEPS[i],it=ITEMS[s.id],a=mainAct(it);
+  return `<section class="ncard" aria-live="polite"><div class="nk">Шаг ${i+1} из ${N}</div><h2>${esc(s.h)}</h2>`+
+   s.say(it).map(p=>`<p class="nw">${esc(p)}</p>`).join('')+
+   (it.steps.length?`<ol class="nst">${it.steps.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>`:'')+
+   `<div class="nacts">${a.main}${a.sub?`<div class="nsub">${a.sub}</div>`:''}<span class="copied" aria-live="polite"></span></div>`+
+   `<button class="nnext" type="button" data-nv="next">${MARK[s.id]?'Сделано ✓ — дальше →':'Готово — дальше →'}</button></section>`}
+function doneHTML(){const all=STEPS.every(s=>MARK[s.id]);
+  return `<section class="ncard nfin" aria-live="polite">${window.Claudes&&Claudes.sprite?'<canvas class="nclaude" aria-hidden="true"></canvas>':'<div class="nstar" aria-hidden="true">★</div>'}<h2>${all?'Готово! Всё главное сделано':'Почти готово'}</h2>`+
+   (all?'':`<p class="nw">Осталось: ${STEPS.filter(s=>!MARK[s.id]).map(s=>'«'+esc(s.h)+'»').join(', ')}. Нажмите номер шага наверху.</p>`)+
+   `<div class="nmore"><span>Хотите больше?</span>${MORE.map(m=>`<button class="nmb" type="button" data-more="${m.k}">${esc(m.h)} →</button>`).join('')}</div></section>`}
+function moreHTML(k){const m=MORE.find(x=>x.k===k),it=ITEMS[m.id],a=mainAct(it),g=it.g;
+  const sk=it.id==='masterhub'?g.items.filter(x=>x.id!=='masterhub'):[];
+  return `<section class="ncard nx" aria-live="polite"><div class="nk">Ещё · ${esc(m.h)}</div><h2>${esc(it.title)}</h2><div class="nbd">`+
+   (it.what?`<p class="nw">${rich(it.what)}</p>`:'')+
+   (it.steps.length?`<ol class="nst">${it.steps.slice(0,3).map(t=>`<li>${esc(t)}</li>`).join('')}</ol>`:'')+
+   (sk.length?`<div class="nsk">${sk.map(x=>`<span>${x.label?`<b>${esc(x.name)}</b> — ${esc(x.label)}`:esc(x.name)}</span>`).join('')}</div>`:'')+
+   `</div><div class="nacts">${a.main}${a.sub?`<div class="nsub">${a.sub}</div>`:''}<span class="copied" aria-live="polite"></span></div>`+
+   `<button class="nnext ghost" type="button" data-nv="fin">← К итогам</button></section>`}
+function render(){
+  const cur=view?MORE.find(m=>m.k===view).id:ST.step<DONE?STEPS[ST.step].id:null;
+  if(cur)selId=cur; // кнопки «скопировать» и отметка берут пункт отсюда, как в полном пульте
+  box.innerHTML=progress()+(view?moreHTML(view):ST.step<DONE?stepHTML(ST.step):doneHTML());
+  const c=box.querySelector('.ncard');c.classList.remove('dense');if(c.scrollHeight>c.clientHeight+1)c.classList.add('dense');
+  joy(box.querySelector('.nclaude'))}
+// экран «Готово»: тот же пиксельный Claude, что бегает по пульту (спрайт claudes.js), но «как в гифке» (Алексей: «мне нравится, как выглядит Claude именно в GIF-формате… неидеально оранжевые»):
+// спрайт уменьшается, как при съёмке гифки (2 px на клетку → ×0,83 со сглаживанием), и каждый пиксель ложится в палитру той гифки (102 цвета, оранжевого в ней нет) как при съёмке той гифки.
+// Радуется — подпрыгивает, руки вверх; коротко и раз в несколько секунд.
+const GIFPAL='f4f1e1,cfdfb1,cdd191,bdcb4f,c1cd4c,b5cf9a,c7c4ab,b7c44f,b2c04e,c0b59c,aeb85a,acb286,acba48,acb848,acb846,a3bd6f,a8b64a,a8b15d,97ab63,a79b6e,919856,838e5b,7e8834,967452,767949,6c733a,696753,597450,5f6932,60624e,52603f,575752,545925,4c5228,385559,62402c,4a4636,454a21,443e33,3d4232,393d18,37382b,372a21,2b363a,2d3114,282927,252910,232222,212118,21240e,211d0c,162526,191b0f,171917,17190a,161909,131515,15160e,151709,14160a,131508,111313,11120d,121309,121307,101107,0f1106,1a0c0a,0f0f08,0e0f06,0e0e0b,0d0e05,0d0b02,0c0e08,0c0e05,0c0d04,0c0c09,0b0c0a,0a0908,0a0b04,090803,070709,060705,060704,040404,080903,080803,060803,050503,060602,040502,050601,040401,010510,030303,010102,030401,020300,020100,080001,000008,000000'.split(',').map(h=>[0,2,4].map(i=>parseInt(h.substr(i,2),16)));
+// как снималась гифка: Claude 2 пикселя на клетку (снимок в половину размера) → уменьшение Lanczos ×5/6 (как PIL) → ближайший цвет палитры, без дизеринга (в гифке его нет — проверено по пикселям)
+const GLOOK=new Map(),CELLS=18,ROWS=12,K=2*5/6,PADC=2; // K — пикселей гифки на клетку Claude
+function lanczos(x){if(x===0)return 1;if(x<=-3||x>=3)return 0;const a=Math.PI*x;return 3*Math.sin(a)*Math.sin(a/3)/(a*a)}
+function resample(src,w,h,W,H){ // по осям: сначала ширина, потом высота (как Image.resize(LANCZOS))
+  const pass=(inp,iw,ih,ow,oh,horiz)=>{const out=new Float32Array(ow*oh*3),n=horiz?iw:ih,m=horiz?ow:oh,si=n/m,sup=3*Math.max(si,1),ss=Math.max(si,1);
+    for(let o=0;o<m;o++){const c=(o+.5)*si,a=Math.max(0,Math.floor(c-sup)),b=Math.min(n,Math.ceil(c+sup));const wt=[];let tot=0;for(let i=a;i<b;i++){const v=lanczos((i-c+.5)/ss);wt.push(v);tot+=v}
+      for(let q=0;q<(horiz?oh:ow);q++)for(let ch=0;ch<3;ch++){let acc=0;for(let i=a;i<b;i++){const k=horiz?(q*iw+i)*3+ch:(i*iw+q)*3+ch;acc+=inp[k]*wt[i-a]}
+        const v=Math.max(0,Math.min(255,Math.round(acc/tot)));out[horiz?(q*ow+o)*3+ch:(o*ow+q)*3+ch]=v}}return out};
+  const t=pass(src,w,h,W,h,true);return pass(t,W,h,W,H,false)}
+function gifLook(o){const key=[o.arms|0,o.eyes|0,o.leg|0,o.look|0,o.blink|0].join();let c=GLOOK.get(key);if(c)return c;
+  const sp=Claudes.sprite(1,o);
+  const big=document.createElement('canvas');big.width=(CELLS+2*PADC)*2;big.height=(ROWS+2*PADC)*2;const b=big.getContext('2d');
+  b.fillStyle='#050505';b.fillRect(0,0,big.width,big.height);b.imageSmoothingEnabled=false;b.drawImage(sp,0,0,sp.width,sp.height,PADC*2,PADC*2,CELLS*2,ROWS*2);
+  const bd=b.getImageData(0,0,big.width,big.height).data,src=new Float32Array(big.width*big.height*3);for(let i=0,j=0;i<bd.length;i+=4,j+=3){src[j]=bd[i];src[j+1]=bd[i+1];src[j+2]=bd[i+2]}
+  c=document.createElement('canvas');c.width=Math.round(big.width*5/6);c.height=Math.round(big.height*5/6);const x=c.getContext('2d');
+  const r=resample(src,big.width,big.height,c.width,c.height),im=x.createImageData(c.width,c.height),d=im.data;
+  for(let j=0,i=0;j<r.length;j+=3,i+=4){if(r[j]+r[j+1]+r[j+2]<45){d[i]=d[i+1]=d[i+2]=5;d[i+3]=255;continue} // тёмное — ровно фон карточки
+    let best=0,be=1e9;for(let n=0;n<GIFPAL.length;n++){const p=GIFPAL[n],dr=r[j]-p[0],dg=r[j+1]-p[1],db=r[j+2]-p[2],e=dr*dr+dg*dg+db*db;if(e<be){be=e;best=n}}
+    const p=GIFPAL[best];d[i]=p[0];d[i+1]=p[1];d[i+2]=p[2];d[i+3]=255}
+  x.putImageData(im,0,0);GLOOK.set(key,c);return c}
+let joyRaf=0;
+function joy(cv){cancelAnimationFrame(joyRaf);if(!cv)return;const U=8,g=cv.getContext('2d'),UP=3; // UP — запас сверху на прыжок, в пикселях гифки
+  const W0=Math.round((CELLS+2*PADC)*2*5/6),H0=Math.round((ROWS+2*PADC)*2*5/6)+UP;
+  cv.width=W0;cv.height=H0;const sc=U/K;cv.style.width=(W0*sc)+'px';cv.style.height=(H0*sc)+'px';cv.style.margin=`${-PADC*U}px 0 ${-PADC*U}px`;
+  const draw=(o,dy)=>{const im=gifLook(o);g.fillStyle='#050505';g.fillRect(0,0,W0,H0);g.drawImage(im,0,UP-dy)};
+  const still=()=>document.body.classList.contains('fxoff')||matchMedia('(prefers-reduced-motion: reduce)').matches;
+  draw({arms:1,eyes:2},0);if(still())return;
+  const t0=performance.now(),CYC=3600;
+  const loop=now=>{if(!cv.isConnected||!document.body.classList.contains('nov'))return;const t=(now-t0)%CYC;
+    if(t<1300){const hop=t>150&&t<1150&&((t/170|0)%2===0)?UP:0;draw({arms:1,eyes:2,leg:(t/170|0)%2},hop)}
+    else if(t>2900&&t<3050)draw({blink:1},0);else draw({look:t>2000&&t<2600?1:0},0);
+    joyRaf=requestAnimationFrame(loop)};
+  joyRaf=requestAnimationFrame(loop)}
+function go(i,focusSel){ST.step=Math.max(0,Math.min(DONE,i));view=null;save();render();beep(620,.04);
+  const f=box.querySelector(focusSel||'.nmain, .nmb, .nnext');if(f)f.focus({preventScroll:true})}
+function apply(on,saveIt){ST.on=on?1:0;if(saveIt)save();
+  if(on){if(mode!=='cursor')setMode('cursor');if(!$('#memesPage').hidden)memes(false);if(TV.k)tvClose();if(window.__tour&&__tour.step>=0)__tour.end();hvClear();gMenu(false);view=null;render();
+    // тур для полного пульта мог всплыть сам в первую секунду — в режиме новичка его нет
+    setTimeout(()=>{if(ST.on&&window.__tour&&__tour.step>=0)__tour.end()},1000)}
+  document.body.classList.toggle('nov',!!on);
+  btn.innerHTML=on?'<b>←</b>ПОЛНЫЙ ПУЛЬТ':'<b>☺</b>РЕЖИМ НОВИЧКА<small>всё по шагам, крупно</small>';
+  btn.setAttribute('aria-pressed',!!on);btn.title=on?'Вернуть полный пульт':'Режим новичка: по одному шагу, крупно'}
+btn.onclick=e=>{e.stopPropagation();apply(!ST.on,true);beep(ST.on?700:480,.05);btn.focus({preventScroll:true})};
+box.addEventListener('click',e=>{
+  const t=e.target.closest('[data-nv],[data-go],[data-more]');if(!t)return;
+  if(t.dataset.go!=null){go(+t.dataset.go,`[data-go="${t.dataset.go}"]`);return}
+  if(t.dataset.more){view=t.dataset.more;render();beep(760,.05);const f=box.querySelector('.nmain');if(f)f.focus({preventScroll:true});return}
+  const a=t.dataset.nv;
+  if(a==='next'){const s=STEPS[ST.step];if(s&&!MARK[s.id])setMark(s.id,true);go(ST.step+1)}
+  else if(a==='back'){if(view){view=null;render()}else go(ST.step-1)}
+  else if(a==='fin'){view=null;go(DONE)}});
+const q=new URLSearchParams(location.search).get('novice');
+apply(q==='1'?1:q==='0'?0:ST.on,q==='1'||q==='0');
+// Claude (claudes.js) подключается после этого кода — экран «Готово» перерисовать, когда страница собрана
+if(!window.Claudes)addEventListener('DOMContentLoaded',()=>{if(ST.on&&!view&&ST.step===DONE)render()},{once:true});
+return{apply,go,get on(){return!!ST.on},get step(){return ST.step},get view(){return view},STEPS}})();
+window.__novice=NOVICE;
+/*<NOV*/
 /*TOUR>*/
 /* ================= TOUR · обучение по блокам (13.11) =================
    Сам — при первом входе (ключ compass_tour). Кто уже заходил (есть свои ключи compass_*) — не всплывает: кнопка «Как пользоваться пультом» горит зелёным.
@@ -2716,7 +2931,8 @@ clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(1
     setEnabled(on) { off = !on; if (off) { actors = []; fx = []; frames = []; if (ctx) ctx.clearRect(0, 0, W, H) } }, get enabled() { return !off },
     texts() { return textRects }, frames() { return frames.map(f => f.b.el) },
     showHint() { lastAct = -1e12; hint.last = -1e12 }, get hintOn() { return hint.on },
-    run(name) { if (off) return 0; collect(); return SC[name] ? SC[name]() : 0 }, set(o) { Object.assign(O, o) } };
+    run(name) { if (off) return 0; collect(); return SC[name] ? SC[name]() : 0 }, set(o) { Object.assign(O, o) },
+    sprite(u, o) { return crabCanvas(u, o || {}) } }; // 13.11: тот же спрайт Claude для экрана «Готово» в режиме новичка
   window.Claudes = api;
 })();
 </script>
