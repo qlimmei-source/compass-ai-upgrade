@@ -1122,7 +1122,7 @@ const META={title:(RAW&&RAW.title)||'Пульт',lead:(RAW&&RAW.lead)||''};
 const LESSONS=((RAW&&RAW.lessons)||[]).filter(l=>l&&l.url&&l.title);
 const lName=l=>l.title+(l.label?' — '+l.label:'');
 /* Кнопка «Видео занятия» скрыта (display:none): показать, когда будет ссылка YouTube — вписать адрес в href и убрать style=display:none. */
-function lessonsHead(){const w=$('#lwrap');if(!w||!LESSONS.length)return;w.hidden=false;setTimeout(()=>w.insertAdjacentHTML('beforeend','<a class="gbtn lbtn" id="videoBtn" style="display:none" href="#video" onclick="event.preventDefault()" title="Видео занятия"><i>▶</i>ВИДЕО ЗАНЯТИЯ</a>'),0);
+function lessonsHead(){const w=$('#lwrap');if(!w||!LESSONS.length)return;w.hidden=false;setTimeout(()=>w.insertAdjacentHTML('beforeend','<a class="gbtn lbtn" id="videoBtn" href="https://youtu.be/SgJ1Zclk9z0" target="_blank" rel="noopener" title="Видео занятия"><i>▶</i>ВИДЕО ЗАНЯТИЯ</a>'),0);
   if(LESSONS.length===1){const l=LESSONS[0];w.innerHTML=`<a class="gbtn lbtn" id="lessonsBtn" href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(lName(l))}"><i>▶</i>${l.kind==='video'?'ВИДЕО':'ПРЕЗЕНТАЦИЯ'}</a>`;return}
   w.innerHTML=`<button class="gbtn lbtn" id="lessonsBtn" aria-haspopup="true" aria-expanded="false"><i>▶</i>ЗАНЯТИЯ ▾</button><div class="mode" role="menu" aria-label="Занятия">${LESSONS.map(l=>`<a role="menuitem" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(lName(l))} ↗</a>`).join('')}</div>`;
   const b=$('#lessonsBtn');b.onclick=e=>{e.stopPropagation();const o=!w.classList.contains('open');w.classList.toggle('open',o);b.setAttribute('aria-expanded',o)};
