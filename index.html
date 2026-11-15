@@ -15,18 +15,21 @@
   --fd:"Manrope",Arial,sans-serif;--fm:"RobotoC","Arial Narrow",sans-serif;--fp:"JBMono",Consolas,monospace;--fx:"Pixelify","JBMono",monospace}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:#000;color:var(--w);font-family:var(--fd)}
-body{overflow:hidden;width:100vw;height:100vh}
+html{overflow-x:hidden;scrollbar-color:#3a3a36 #000}
+body{overflow-x:hidden;overflow-y:auto;width:100%;min-height:100vh}
+html:has(body.playing),html:has(body.tvopen){overflow-y:hidden}
+body.playing #stage,body.tvopen #stage{height:1080px}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
 a{color:inherit;text-decoration:none}
 button:focus-visible,a:focus-visible{outline:2px solid var(--iv);outline-offset:3px}
-#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;overflow:hidden}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1290px;transform-origin:0 0;overflow:hidden}
 #bg{position:absolute;left:0;top:0;pointer-events:none}
 /* слой ниточек с энергией (под блоками); Claude-модуль может рисовать в свой слой поверх #fx */
 #fx{position:absolute;left:0;top:0;pointer-events:none}
 body.playing #fx{display:none}
 body.playing .glow{opacity:.12}
 /* рамка единой панели */
-.frame{left:96px;top:16px;width:1728px;height:1012px;border:2px solid #22231c;pointer-events:none}
+.frame{left:96px;top:16px;width:1728px;height:1174px;border:2px solid #22231c;pointer-events:none}
 .pod .in::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .5s;
   background:linear-gradient(180deg,transparent,rgba(172,185,72,.13) 50%,transparent) 0 -60%/100% 40% no-repeat}
 .pod.lit .in::after{opacity:1;animation:scanl 1.8s linear infinite}
@@ -165,7 +168,7 @@ body.fxoff #deco rect[width="3"]{display:none}
 .vr.on{background:var(--g);color:#000}
 .vr.on b,.vr.on em{color:#000}
 /* arena + card */
-#arena{left:792px;top:140px;width:608px;height:870px;background:#000}
+#arena{left:792px;top:140px;width:584px;height:1002px;background:#000}
 body.g-snake #arena,body.g-azimut #arena{background:transparent}
 .corner{position:absolute;width:20px;height:20px;border:0 solid var(--dk)}
 #card{position:absolute;left:24px;top:16px;right:24px;bottom:18px;display:flex;flex-direction:column}
@@ -463,7 +466,10 @@ body.tvopen #card,body.tvopen #pods,body.tvopen .hdr{visibility:hidden}
 /* меню игр: одна кнопка «ИГРЫ ▾», список выпадает поверх и ничего не сдвигает */
 .gwrap{position:relative;margin-left:14px}
 /* Занятия (13.11): презентация и видео занятий — из content.json, поле lessons. Одно занятие — прямая кнопка, несколько — меню */
-.lwrap{margin-left:0}
+.lwrap{margin-left:0;display:flex;align-items:center}
+/* v_spacing: в шапке на одну кнопку больше — зазоры уже, чтобы кнопки не заходили под «Режим новичка» */
+.hdr .gbtn,.hdr .snd,.hdr .gsep,.hdr .gwrap,.hdr .read{margin-left:8px}.hdr .lwrap{margin-left:0}
+.hdr .gbtn{padding:0 10px}.hdr .lbtn{margin-right:8px;letter-spacing:.08em;gap:8px}.hdr .read{padding:0 12px;letter-spacing:.12em}.hdr .snd{padding:0 9px}.hdr .fxb{margin-left:8px}
 .hdr .lbtn{display:flex;align-items:center;gap:10px;margin-left:0;margin-right:14px;background:var(--g);color:#000;border-color:var(--g);box-shadow:4px 4px 0 #2a2a26}
 .hdr .lbtn:hover,.hdr .lbtn.act,.hdr .lbtn:focus-visible{background:#000;color:var(--g)}
 .hdr .lbtn i{font-style:normal;font-family:var(--fp)}
@@ -493,14 +499,14 @@ body.tvopen #card,body.tvopen #pods,body.tvopen .hdr{visibility:hidden}
 #memesPage .mmback{position:sticky;top:0;z-index:2;display:inline-flex}
 #memesPage .mmwrap{max-width:1500px;margin:0 auto}
 /* footer */
-.ftr{left:120px;top:1036px;width:1680px;display:flex;gap:24px;font:500 14px var(--fm);letter-spacing:.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.ftr{left:120px;top:1198px;width:1680px;display:flex;gap:24px;font:500 14px var(--fm);letter-spacing:.2em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
 .ftr b{color:var(--w);font-weight:600}
 .ftr em{font-style:normal;color:var(--g)}
 .ftr .r{margin-left:auto;display:flex;gap:22px;align-items:center}
 .lg i{display:inline-block;width:14px;height:14px;margin-right:8px;vertical-align:-2px}
 .lg .on{background:var(--g)}.lg .off{border:2px solid var(--g)}
 .lg .wm{margin:0 8px 0 0;width:16px;height:16px;font-size:11px;line-height:13px}
-.bot{left:0;top:1072px;width:1920px;height:8px;background:var(--g)}
+.bot{left:0;top:1282px;width:1920px;height:8px;background:var(--g)}
 canvas.game{position:absolute;left:0;top:0;width:1920px;height:1080px;pointer-events:none;display:none}
 #px{image-rendering:pixelated}
 #rec{position:absolute;left:50%;top:600px;transform:translateX(-50%);width:600px;padding:14px;background:#050505;border:2px solid var(--g);box-shadow:8px 8px 0 #1d1f12;text-align:center;z-index:30}
@@ -792,16 +798,16 @@ body.tour .novb.novfull .novhey{opacity:0}
 </head>
 <body>
 <div id="stage">
-<svg id="bg" width="1920" height="1080" xmlns="http://www.w3.org/2000/svg">
+<svg id="bg" width="1920" height="1290" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <pattern id="floor" width="24" height="24" patternUnits="userSpaceOnUse"><rect x="11" y="11" width="2" height="2" fill="#2a2b22"/></pattern>
     <pattern id="dotsSparse" width="8" height="8" patternUnits="userSpaceOnUse"><rect x="3" y="3" width="3" height="3" fill="#ACB948" opacity=".55"/></pattern>
   </defs>
-  <rect x="0" y="120" width="1920" height="910" fill="url(#floor)"/>
+  <rect x="0" y="120" width="1920" height="1170" fill="url(#floor)"/>
   <g id="spine"></g>
   <g id="deco"></g>
 </svg>
-<canvas id="fx" width="1920" height="1080" aria-hidden="true"></canvas>
+<canvas id="fx" width="1920" height="1290" aria-hidden="true"></canvas>
 
 <div class="abs hdr">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 202.529 64.574" class="logo" role="img" aria-label="Compass College">
@@ -1115,7 +1121,8 @@ const META={title:(RAW&&RAW.title)||'Пульт',lead:(RAW&&RAW.lead)||''};
 // занятия: презентации и видео (content.json → lessons: {id,kind:"deck"|"video",title,label,what,url,date}); новое видео — одна запись
 const LESSONS=((RAW&&RAW.lessons)||[]).filter(l=>l&&l.url&&l.title);
 const lName=l=>l.title+(l.label?' — '+l.label:'');
-function lessonsHead(){const w=$('#lwrap');if(!w||!LESSONS.length)return;w.hidden=false;
+/* Кнопка «Видео занятия» скрыта (display:none): показать, когда будет ссылка YouTube — вписать адрес в href и убрать style=display:none. */
+function lessonsHead(){const w=$('#lwrap');if(!w||!LESSONS.length)return;w.hidden=false;setTimeout(()=>w.insertAdjacentHTML('beforeend','<a class="gbtn lbtn" id="videoBtn" style="display:none" href="#video" onclick="event.preventDefault()" title="Видео занятия"><i>▶</i>ВИДЕО ЗАНЯТИЯ</a>'),0);
   if(LESSONS.length===1){const l=LESSONS[0];w.innerHTML=`<a class="gbtn lbtn" id="lessonsBtn" href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(lName(l))}"><i>▶</i>${l.kind==='video'?'ВИДЕО':'ПРЕЗЕНТАЦИЯ'}</a>`;return}
   w.innerHTML=`<button class="gbtn lbtn" id="lessonsBtn" aria-haspopup="true" aria-expanded="false"><i>▶</i>ЗАНЯТИЯ ▾</button><div class="mode" role="menu" aria-label="Занятия">${LESSONS.map(l=>`<a role="menuitem" href="${esc(l.url)}" target="_blank" rel="noopener">${esc(lName(l))} ↗</a>`).join('')}</div>`;
   const b=$('#lessonsBtn');b.onclick=e=>{e.stopPropagation();const o=!w.classList.contains('open');w.classList.toggle('open',o);b.setAttribute('aria-expanded',o)};
@@ -1129,13 +1136,13 @@ const saveMarks=()=>{try{localStorage.setItem(LS,JSON.stringify(MARK))}catch(e){
 
 /* ================= LAYOUT ================= */
 const SLOTS={
- faders:{x:120,y:140,W:640,H:300,ch:[34,0,0,0],main:1},
- vault:{x:168,y:476,W:592,H:150,ch:[0,22,0,0],branch:'из «Начала»'},
- feat:{x:120,y:662,W:640,H:348,ch:[0,0,34,0],main:1},
+ faders:{x:120,y:140,W:616,H:300,ch:[34,0,0,0],main:1},
+ vault:{x:168,y:542,W:568,H:150,ch:[0,22,0,0],branch:'из «Начала»'},
+ feat:{x:120,y:794,W:616,H:348,ch:[0,0,34,0],main:1},
  mh:{x:1432,y:140,W:368,H:358,ch:[0,40,0,0],main:1},
- list:{x:1452,y:524,W:348,H:292,ch:[0,0,0,22],branch:'из MasterHub'},
- list2:{x:1452,y:838,W:348,H:172,ch:[0,18,0,0],branch:'для чтения'},
- keys:{x:792,y:802,W:608,H:208,ch:[22,0,22,0]}
+ list:{x:1452,y:588,W:348,H:292,ch:[0,0,0,22],branch:'из MasterHub'},
+ list2:{x:1452,y:970,W:348,H:172,ch:[0,18,0,0],branch:'для чтения'},
+ keys:{x:792,y:934,W:584,H:208,ch:[22,0,22,0]}
 };
 const H={};
 function rich(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').split('\n').join('<br>')}
@@ -1199,12 +1206,12 @@ function drawDeco(){const dc=$('#deco');dc.innerHTML='';
  const spr=(rows,x0,y0,c,dot,op)=>rows.forEach((r,j)=>[...r].forEach((ch,i)=>{if(ch!=='.')svgEl('rect',{x:x0+i*c,y:y0+j*c,width:dot,height:dot,fill:'#ACB948',opacity:op||1},dc)}));
  // уголки рамки панели
  spr(["####","#...","#..."],92,12,6,5);spr(["####","...#","...#"],1806,12,6,5);
- spr(["#...","#...","####"],92,1012,6,5);spr(["...#","...#","####"],1806,1012,6,5);
+ spr(["#...","#...","####"],92,1174,6,5);spr(["...#","...#","####"],1806,1174,6,5);
  // крестики в полях и зазорах
  spr([".#.","###",".#."],46,560,5,4,.55);spr([".#.","###",".#."],1862,300,5,4,.55);
  spr(["#.#",".#.","#.#"],600,560,4,3,.35);spr(["#.#",".#.","#.#"],1700,640,4,3,.35);
  // рассыпание: точки отходят от уголков, как от крабика на слайде
- [[120,36,.5],[132,30,.3],[110,48,.25],[1790,1004,.5],[1778,1012,.3],[1798,990,.22],[70,180,.3],[1876,860,.28]].forEach(([x,y,o])=>svgEl('rect',{x,y,width:3,height:3,fill:'#ACB948',opacity:o},dc));
+ [[120,36,.5],[132,30,.3],[110,48,.25],[1790,1166,.5],[1778,1174,.3],[1798,1152,.22],[70,180,.3],[1876,860,.28]].forEach(([x,y,o])=>svgEl('rect',{x,y,width:3,height:3,fill:'#ACB948',opacity:o},dc));
 }
 const spinePath=null;
 
@@ -1212,11 +1219,11 @@ const spinePath=null;
    Слой #fx под блоками. Модуль Claude может читать window.__console.THREADS (ломаные в координатах сцены 1920×1080). */
 const THREADS=[
  {id:'bus',pts:[[120,110],[1800,110]],bus:1},
- {id:'bus-01',pts:[[440,110],[440,140]]},{id:'bus-card',pts:[[1096,110],[1096,140]]},{id:'bus-mh',pts:[[1616,110],[1616,140]]},
- {id:'01-card',pts:[[760,290],[792,290]]},{id:'mh-card',pts:[[1432,330],[1400,330]]},{id:'04-card',pts:[[760,836],[792,836]]},
- {id:'01-05',pts:[[140,440],[140,551],[168,551]],branch:1},
- {id:'mh-02',pts:[[1442,498],[1442,670],[1452,670]],branch:1},{id:'mh-03',pts:[[1442,670],[1442,924],[1452,924]],branch:1},
- {id:'card-01-04',pts:[[776,290],[776,836]]}
+ {id:'bus-01',pts:[[440,110],[440,140]]},{id:'bus-card',pts:[[1084,110],[1084,140]]},{id:'bus-mh',pts:[[1616,110],[1616,140]]},
+ {id:'01-card',pts:[[736,290],[792,290]]},{id:'mh-card',pts:[[1432,330],[1376,330]]},{id:'04-card',pts:[[736,968],[792,968]]},
+ {id:'01-05',pts:[[140,440],[140,617],[168,617]],branch:1},
+ {id:'mh-02',pts:[[1442,498],[1442,734],[1452,734]],branch:1},{id:'mh-03',pts:[[1442,734],[1442,1056],[1452,1056]],branch:1},
+ {id:'card-01-04',pts:[[764,290],[764,968]]}
 ]
 function threadMarks(){const box=$('#pods');THREADS.filter(t=>!t.bus).forEach(t=>{const m=t.seg.reduce((x,y)=>y.l>x.l?y:x);const e=document.createElement('i');e.className='thread';e.dataset.thread=t.id;e.style.cssText=`position:absolute;width:10px;height:10px;left:${(m.a[0]+m.b[0])/2-5}px;top:${(m.a[1]+m.b[1])/2-5}px;pointer-events:none`;box.appendChild(e)})}
 THREADS.forEach(t=>{let L=0;t.seg=[];for(let i=1;i<t.pts.length;i++){const a=t.pts[i-1],b=t.pts[i],l=Math.hypot(b[0]-a[0],b[1]-a[1]);t.seg.push({a,b,l,o:L});L+=l}t.len=L;t.pulses=[];t.next=Math.random()*1.5;t.broken=0});
@@ -1224,7 +1231,7 @@ function tPoint(t,d){d=Math.max(0,Math.min(t.len,d));for(const s of t.seg)if(d<=
 const fx=$('#fx'),fxc=fx.getContext('2d');const RM=matchMedia('(prefers-reduced-motion: reduce)');
 let fxLast=0,fxRaf=0;
 function fxDraw(t){fxRaf=0;if(!FXON)return;if(document.hidden||mode!=='cursor'||MOBILE)return;const dt=Math.min(.05,(t-fxLast)/1000||0);fxLast=t;
- const c=fxc;c.clearRect(0,0,1920,1080);
+ const c=fxc;c.clearRect(0,0,1920,1290);
  for(const th of THREADS){
   // сама нитка: тонкая, пунктиром; разъёмы на концах
   const hot=HOTT.has(th.id),TA=hot||!HV?1:.3;c.globalAlpha=TA;
@@ -1406,7 +1413,7 @@ $('#snd').onclick=sndToggle;$('#recSave').onclick=recSave;$('#recCopy').onclick=
 /* v10 · кнопка «Отключить визуализацию»: выбор в localStorage; «уменьшить движение» в системе — по умолчанию выключено */
 let FXON=true;
 function fxApply(on,save){FXON=!!on;document.body.classList.toggle('fxoff',!FXON);const b=$('#fxb');b.classList.toggle('off',!FXON);b.setAttribute('aria-pressed',FXON);$('#fxl').textContent='ЭФФЕКТЫ: '+(FXON?'ВКЛ':'ВЫКЛ');b.setAttribute('aria-label','Отключить визуализацию: сейчас эффекты '+(FXON?'включены':'выключены'));b.title=FXON?'Отключить визуализацию':'Включить визуализацию';
- if(window.Claudes&&Claudes.setEnabled)Claudes.setEnabled(FXON);if(FXON)fxStart();else fxc.clearRect(0,0,1920,1080);mhOrch($('#card'));
+ if(window.Claudes&&Claudes.setEnabled)Claudes.setEnabled(FXON);if(FXON)fxStart();else fxc.clearRect(0,0,1920,1290);mhOrch($('#card'));
  if(save){try{localStorage.setItem('compass_fx',FXON?'1':'0')}catch(e){}}}
 $('#fxb').onclick=()=>{fxApply(!FXON,true);$('#fxb').blur()};
 try{if(localStorage.getItem('compass_nb')==='hide')document.body.classList.add('nbhide')}catch(e){}
@@ -1436,7 +1443,7 @@ function tvHTML(v){const h=ITEMS['hard-task'],N=['Что получится','К
    <div class="pr"><div class="lbl">Промпт для Claude</div><pre>${esc(v.prompt)}</pre></div></section>
  </div></div>
  <div class="tvbot"><button class="btn ghost nav" data-act="tvgo" data-i="prev">← Назад</button><div class="dots">${N.map((n,i)=>`<button data-act="tvgo" data-i="${i}">${i+1} · ${n}</button>`).join('')}</div><button class="btn nav" data-act="tvgo" data-i="next">Дальше →</button></div>`}
-function tvOpen(k,i){const v=VAR(k);if(!v||MOBILE)return;if(mode!=='cursor')setMode('cursor');TV.k=k;const tv=$('#tv');tv.innerHTML=tvHTML(v);
+function tvOpen(k,i){const v=VAR(k);if(!v||MOBILE)return;window.scrollTo(0,0);if(mode!=='cursor')setMode('cursor');TV.k=k;const tv=$('#tv');tv.innerHTML=tvHTML(v);
  if(!tv.classList.contains('open')){tv.classList.add('open');document.body.classList.add('tvopen');hvClear()}
  tvGo(i||0,1);beep(600,.05);const f=tv.querySelector('[data-i="next"]');if(f)f.focus({preventScroll:true})}
 function tvGo(i,quiet){const tv=$('#tv');if(!TV.k)return;i=Math.max(0,Math.min(2,i|0));TV.i=i;
@@ -1576,6 +1583,7 @@ let mode='cursor',game=null,raf=0,last=0;const KEY={};
 const GAMES={};
 function setMode(m){
   if(MOBILE)m='cursor';
+  if(m!=='cursor')window.scrollTo(0,0);/* игры — на первом экране */
   if(game){game.exit();game=null}
   cancelAnimationFrame(raf);raf=0;
   [...document.body.classList].filter(c=>c.startsWith('g-')).forEach(c=>document.body.classList.remove(c));document.body.classList.remove('playing');
@@ -2196,8 +2204,8 @@ $('#memesBtn').onclick=()=>memes(true);
 function fit(){const W=innerWidth,Hh=innerHeight;const m=W<900||(screen.width<900&&matchMedia('(pointer:coarse)').matches);
   if(m&&!MOBILE&&/^https?:$/.test(location.protocol)&&!matchMedia('(hover:none) and (pointer:coarse)').matches)location.replace('read.html');
   if(m!==MOBILE){MOBILE=m;document.body.classList.toggle('m',m);if(m&&mode!=='cursor')setMode('cursor')}
-  if(m){SC=1;stage.style.transform='';return}
-  SC=Math.min(W/1920,Hh/1080);OX=(W-1920*SC)/2;OY=(Hh-1080*SC)/2;stage.style.transform=`translate(${OX}px,${OY}px) scale(${SC})`}
+  if(m){SC=1;stage.style.transform='';document.body.style.height='';return}
+  const CW=document.documentElement.clientWidth||W;SC=CW/1920;OX=0;OY=0;stage.style.transform=`scale(${SC})`;document.body.style.height=Math.max(Hh,Math.ceil(1290*SC))+'px'}
 addEventListener('resize',fit);
 $('#glossBtn').hidden=!GLOSS.length;$('#glossBtn').onclick=()=>{if(mode!=='cursor')setMode('cursor');showGloss();$('#glossBtn').blur()};
 lessonsHead();drawDeco();build();threadMarks();footerIdle();fxStart();$('#card').innerHTML=idleHTML();fit();
@@ -2383,6 +2391,7 @@ function show(i){const n=STEPS.length;if(i<0||i>=n)return;ti=i;const st=STEPS[i]
   $('#tourH').textContent=st.h;$('#tourP').textContent=st.p;
   const kn=st.kn&&st.kn();const kp=$('#tourK');kp.hidden=!kn;if(kn)kp.innerHTML=(st.k?'<span class="sw" aria-hidden="true"></span>':'')+'<b>Главная кнопка'+(st.k?' (в светлой рамке)':'')+':</b> '+esc(kn);
   $('#tourBack').disabled=i===0;$('#tourNext').textContent=i===n-1?'ГОТОВО ✓':'ДАЛЬШЕ →';$('#tourSkip').style.visibility=i===n-1?'hidden':'';
+  {const e0=$([].concat(st.t)[0]);if(e0&&e0.scrollIntoView)e0.scrollIntoView({block:'center',behavior:'instant'})}/* страница прокручивается: подвести к нужному блоку */
   cap.classList.add('hide');requestAnimationFrame(()=>{layout(true);requestAnimationFrame(()=>cap.classList.remove('hide'))});
   $('#tourNext').focus({preventScroll:true})}
 function start(){if(document.body.classList.contains('m'))return;lastFocus=document.activeElement;prep();markSeen();tb.classList.remove('new');
