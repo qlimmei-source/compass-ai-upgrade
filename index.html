@@ -1593,8 +1593,8 @@ function setMode(m){
   mode=m;banner('');$('#cv').style.display='none';$('#px').style.display='none';
   if(document.activeElement&&document.activeElement.blur)document.activeElement.blur();
   for(const k in KEY)KEY[k]=false;
-  if(m==='cursor'){footerIdle();fxStart();return}
-  document.body.classList.add('g-'+m,'playing');
+  if(m==='cursor'){fit();footerIdle();fxStart();return}
+  document.body.classList.add('g-'+m,'playing');fit();
   game=GAMES[m];game.enter();last=performance.now();raf=requestAnimationFrame(loop);
 }
 window.__frames=0;
@@ -2205,7 +2205,10 @@ function fit(){const W=innerWidth,Hh=innerHeight;const m=W<900||(screen.width<90
   if(m&&!MOBILE&&/^https?:$/.test(location.protocol)&&!matchMedia('(hover:none) and (pointer:coarse)').matches)location.replace('read.html');
   if(m!==MOBILE){MOBILE=m;document.body.classList.toggle('m',m);if(m&&mode!=='cursor')setMode('cursor')}
   if(m){SC=1;stage.style.transform='';document.body.style.height='';return}
-  const CW=document.documentElement.clientWidth||W;SC=CW/1920;OX=0;OY=0;stage.style.transform=`scale(${SC})`;document.body.style.height=Math.max(Hh,Math.ceil(1290*SC))+'px'}
+  const CW=document.documentElement.clientWidth||W;SC=CW/1920;OX=0;OY=0;
+  /* 16.11: в игре поле 1920×1080 целиком в окне — по высоте тоже, по бокам чёрные поля */
+  if(document.body.classList.contains('playing')&&Hh<1080*SC){SC=Hh/1080;OX=Math.round((CW-1920*SC)/2)}
+  stage.style.transform=OX?`translate(${OX}px,0) scale(${SC})`:`scale(${SC})`;document.body.style.height=Math.max(Hh,Math.ceil(1290*SC))+'px'}
 addEventListener('resize',fit);
 $('#glossBtn').hidden=!GLOSS.length;$('#glossBtn').onclick=()=>{if(mode!=='cursor')setMode('cursor');showGloss();$('#glossBtn').blur()};
 lessonsHead();drawDeco();build();threadMarks();footerIdle();fxStart();$('#card').innerHTML=idleHTML();fit();
@@ -2735,7 +2738,7 @@ window.__tour=TOUR;
     if (c >= 2) { ctx.fillRect(X - U, Y + U * ((c - 1) >> 1), U, U); ctx.fillRect(X + S, Y + U * ((c - 1) >> 1), U, U); ctx.fillRect(X + U * ((c - 1) >> 1), Y - U, U, U); ctx.fillRect(X + U * ((c - 1) >> 1), Y + S, U, U) } }
   function chamfer(el) { const s = getComputedStyle(el); return ['--a', '--b', '--c', '--d'].map(v => parseFloat(s.getPropertyValue(v)) || 0) }
   function frameFx(b, ms, col) { const f = { t: 'frame', b, ms, life: ms, col: col || OR, ch: chamfer(b.el) }; frames.push(f); return f }
-  function drawFrame(f) { const r = f.b.r, k = Math.min(1, (f.life - f.ms) / 250, f.ms / 400), o = 3, [a, b, c, d] = f.ch, sc = (r.x1 - r.x0) / (f.b.el.offsetWidth || (r.x1 - r.x0));
+  function drawFrame(f) { const q0 = f.b.el.getBoundingClientRect(), r = R(q0.x, q0.y, q0.width, q0.height), k = Math.min(1, (f.life - f.ms) / 250, f.ms / 400), o = 3, [a, b, c, d] = f.ch, sc = (r.x1 - r.x0) / (f.b.el.offsetWidth || (r.x1 - r.x0));
     const A = a * sc, B = b * sc, C = c * sc, D = d * sc; ctx.save(); ctx.globalAlpha = .8 * k + .2 * k * Math.sin(now / 120);
     ctx.strokeStyle = f.col; ctx.lineJoin = 'miter';
     const ring = (o, lw) => { const X0 = Math.round(r.x0 - o) + .5, X1 = Math.round(r.x1 + o) - .5, Y0 = Math.round(r.y0 - o) + .5, Y1 = Math.round(r.y1 + o) - .5; ctx.lineWidth = lw;
@@ -2949,8 +2952,9 @@ clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(1
   /* ---------- цикл ---------- */
   function resize() { W = innerWidth; H = innerHeight; DPR = Math.min(2, devicePixelRatio || 1); mobile = W < O.mobileWidth;
     const sc = Math.max(.75, Math.min(1.35, Math.min(W / 1920, H / 1080) * 1.1)); U = mobile ? Math.max(1, Math.round(O.mobileSize * DPR)) / DPR : Math.max(1, Math.round(O.size * sc / 1.1 * DPR)) / DPR;
-    CELL = mobile ? 8 : 12; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false; cache.clear(); dirty = true }
-  let last = 0, off = false; // off — «Отключить визуализацию»: ни Claude, ни подсказки
+    CELL = mobile ? 8 : 12; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.imageSmoothingEnabled = false;
+    if (lay) { lay.width = cv.width; lay.height = cv.height; lctx.setTransform(DPR, 0, 0, DPR, 0, 0); lctx.imageSmoothingEnabled = false } cache.clear(); dirty = true }
+  let last = 0, off = false, scrolledAt = -1e9, lay = null, lctx = null; // 16.11: Claude рисуются в свой слой, места блоков и текста из него вырезаны — Claude «под» ними; прокрутка их не гасит; // off — «Отключить визуализацию»: ни Claude, ни подсказки
   function loop(ts) {
     raf = requestAnimationFrame(loop); now = ts; const dt = Math.min(50, last ? ts - last : 16); last = ts; stats.frames++;
     if (off) { if (actors.length || fx.length || frames.length) { actors = []; fx = []; frames = []; ctx.clearRect(0, 0, W, H) } if (hint.on || hint.dir !== 0) { hint.on = false; hint.dir = 0; hint.k = 0; hintEl.classList.remove('on'); fog.style.display = 'none' } lastAct = now; return }
@@ -2966,9 +2970,14 @@ clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(1
     actors = actors.filter(a => !a.dead); updFx(dt);
     for (const f of frames) drawFrame(f);
     drawFx(); fx.filter(f => f.t === 'list').forEach(f => { f.ms -= dt; drawList(f) }); fx = fx.filter(f => !(f.t === 'list' && f.ms <= 0));
+    const main = ctx; ctx = lctx; ctx.clearRect(0, 0, W, H);
     for (const a of actors) { if (a.hidden) continue;
-      const b = box(a); if (obst.some(o => hit(b, o))) { if (a.st !== 'out') { a.st = 'out'; a.steps = []; stats.hidden++ } a.k = 0; a.dead = true; continue } // страховка: на текст не заходим
+      const b = box(a); if (now - scrolledAt > 2500 && obst.some(o => hit(b, o))) { if (a.st !== 'out') { a.st = 'out'; a.steps = []; stats.hidden++ } a.k = 0; a.dead = true; continue } // страховка: на текст не заходим
       drawActor(a); if (a.carry === 'big') drawBig(a) }
+    ctx.globalCompositeOperation = 'destination-out'; ctx.fillStyle = '#000';
+    for (const o of obst) ctx.fillRect(o.x0, o.y0, o.x1 - o.x0, o.y1 - o.y0);
+    for (const b of blocks) { const q = b.el.getBoundingClientRect(); ctx.fillRect(q.x, q.y, q.width, q.height) }
+    ctx.globalCompositeOperation = 'source-over'; ctx = main; ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lay, 0, 0); ctx.restore();
   }
   function drawBig(a) { const u = U, w = 22 * u, h = 13 * u, x = snap(a.x - w / 2), y = snap(a.y - 6 * u - h + 2 * u) + Math.round(Math.sin(a.bob * 3) * .6) * u;
     ctx.fillStyle = IV; ctx.fillRect(x, y, w, h); ctx.fillRect(x, y - 2 * u, 8 * u, 2 * u); ctx.fillStyle = G; ctx.fillRect(x + u, y + u, w - 2 * u, h - 2 * u);
@@ -2980,8 +2989,8 @@ clip-path:polygon(0 0,calc(100% - 14px) 0,100% 14px,100% 100%,14px 100%,0 calc(1
     reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
     cv = document.createElement('canvas'); cv.setAttribute('data-claudes', ''); cv.setAttribute('aria-hidden', 'true');
     cv.style.cssText = `position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:${O.zIndex}`;
-    document.body.append(cv); ctx = cv.getContext('2d'); resize();
-    addEventListener('resize', resize); addEventListener('scroll', () => { dirty = true }, { passive: true, capture: true });
+    document.body.append(cv); ctx = cv.getContext('2d'); lay = document.createElement('canvas'); lctx = lay.getContext('2d'); resize();
+    addEventListener('resize', resize); addEventListener('scroll', () => { dirty = true; scrolledAt = performance.now() }, { passive: true, capture: true });
     addEventListener('click', () => { dirty = true }, true);
     new MutationObserver(() => { dirty = true }).observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
     if (O.hint) hintSetup(); lastAct = performance.now(); nextScene = performance.now() + 600;
