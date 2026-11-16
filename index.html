@@ -767,6 +767,14 @@ body.nov:not(.m) #stage *:not(.novb){animation:none!important}
 .nvid{position:relative;aspect-ratio:16/9;background:#111;border:2px solid #3b3e22;overflow:hidden}
 .nvid .nclip{display:block;width:100%;height:100%;object-fit:cover}
 .nvid>b{position:absolute;left:0;top:0;width:52px;height:52px;background:var(--g);color:#000;font:600 30px/52px var(--fx);text-align:center}
+/* 16.11: под роликом всегда лежит его первый кадр (jpg); ролик проявляется поверх, когда загрузился. Три ролика шага играют по очереди:
+   играющий — в зелёной рамке, остальные стоят на первом кадре и чуть приглушены. */
+.nvid .nmov{position:absolute;left:0;top:0;opacity:0;transition:opacity .2s}
+.nvid .nmov.ok{opacity:1}
+.ncols.nseq .nvid{transition:border-color .25s,box-shadow .25s}
+.ncols.nseq .nvid .nclip{transition:filter .3s}
+.ncols.nseq>li:not(.non) .nvid .nclip{filter:brightness(.5) saturate(.75)}
+.ncols.nseq>li.non .nvid{border-color:var(--g);box-shadow:0 0 0 2px var(--g),0 0 26px 3px rgba(172,185,72,.4)}
 .ncols>li>p{margin:16px 0 0;font:400 23px/1.38 var(--fd);color:var(--iv)}
 .ncols .nacts{margin-top:18px}
 .ncols .nmain{height:68px;padding:0 30px;font-size:25px}
@@ -2235,7 +2243,30 @@ const STEPS=[
 const MORE=[{k:'mh',id:'masterhub',h:'MasterHub и Skills'},{k:'cn',id:'google-workspace',h:'Коннекторы',clip:'connectors'}].filter(m=>ITEMS[m.id]);
 // ролик действия: по кругу, без звука; при «Эффекты: выкл» и «меньше движения» — первый кадр
 const still=()=>document.body.classList.contains('fxoff')||matchMedia('(prefers-reduced-motion: reduce)').matches;
-const clip=n=>n?(still()?`<img class="nclip" src="novice/${n}.jpg" alt="" aria-hidden="true">`:`<video class="nclip" src="novice/${n}.mp4" poster="novice/${n}.jpg" muted loop playsinline autoplay preload="auto" aria-hidden="true"></video>`):'';
+// 16.11: первый кадр (jpg) — всегда; ролик — поверх него, без autoplay: запускает очередь ниже (plStart)
+// 16.11 18:27: кадр — обложка novice/<имя>_cover.jpg (кадр с содержимым: 1,2 с; у двух роликов про вкладку Code — 2 с); прежние <имя>.jpg почти чёрные, лежат как были
+const COV={install_3_code_folder:2,homework_1_open:2};
+const clip=n=>n?`<img class="nclip" src="novice/${n}_cover.jpg" alt="" aria-hidden="true">`+(still()?'':`<video class="nclip nmov" src="novice/${n}.mp4" poster="novice/${n}_cover.jpg" data-cov="${COV[n]||1.2}" muted playsinline preload="auto" aria-hidden="true"></video>`):'';
+// очередь роликов (Алексей, 16.11: «загорался один, доделывался, потом загорался второй… третий»; «анимация… на наведение курсора»):
+// 1 → 2 → 3 → 1, каждый до конца один раз; мышь на ролике — играет он (по кругу, пока мышь на нём), мышь ушла — очередь идёт со следующего.
+// Один ролик (Коннекторы) — по кругу. Каждая перерисовка начинает очередь заново (gen), старые ролики и таймер гасятся.
+// Ждущий ролик стоит не на самом первом кадре: ролики начинаются с затемнения (~0,5 с, замер 16.11), первый кадр почти чёрный.
+// Ждущий показывает кадр «обложку» на 1,2 с (или на трети короткого ролика); заиграл — с начала.
+const PL={gen:0,vids:[],cur:0,hov:-1,t:0};
+const cover=v=>{const f=()=>{if(PL.vids[PL.cur]!==v&&v.paused)try{v.currentTime=Math.min(+v.dataset.cov||1.2,(v.duration||3)*.45)}catch(e){}};if(v.readyState>=1)f();else v.addEventListener('loadedmetadata',f,{once:true})};
+function plStop(){PL.gen++;clearTimeout(PL.t);PL.t=0;PL.vids.forEach(v=>{try{v.pause()}catch(e){}});PL.vids=[];PL.hov=-1}
+function plSet(i){const g=PL.gen,vs=PL.vids,n=vs.length;if(!n)return;PL.cur=i;clearTimeout(PL.t);PL.t=0;
+  vs.forEach((v,k)=>{const li=v.closest('li');if(li)li.classList.toggle('non',k===i);if(k!==i){v.loop=false;v.pause();cover(v)}});
+  const v=vs[i];v.loop=n===1||PL.hov===i;try{v.currentTime=0}catch(e){}
+  const p=v.play();if(p&&p.catch)p.catch(()=>{if(g===PL.gen&&n>1&&PL.hov<0)PL.t=setTimeout(()=>{if(g===PL.gen)plSet((i+1)%n)},4000)})}
+function plStart(){plStop();if(still())return;const vs=[...box.querySelectorAll('video.nmov')];if(!vs.length)return;const g=PL.gen,n=vs.length;PL.vids=vs;
+  const ol=box.querySelector('.ncols');if(ol&&n>1)ol.classList.add('nseq');
+  vs.forEach((v,k)=>{if(v.readyState>=2)v.classList.add('ok');else v.addEventListener('loadeddata',()=>v.classList.add('ok'),{once:true});
+    v.addEventListener('ended',()=>{if(g===PL.gen&&k===PL.cur&&PL.hov!==k)plSet((k+1)%n)});
+    if(n>1){const w=v.closest('.nvid');
+      w.addEventListener('mouseenter',()=>{if(g!==PL.gen)return;PL.hov=k;if(k===PL.cur&&!v.paused){v.loop=true;return}plSet(k)});
+      w.addEventListener('mouseleave',()=>{if(g!==PL.gen||PL.hov!==k)return;PL.hov=-1;plSet((k+1)%n)})}});
+  plSet(0)}
 const N=STEPS.length,DONE=N;
 let ST={on:0,step:null},view=null; // view: null — шаг; 'mh' | 'cn' — блок из «Хотите больше?»
 try{const v=JSON.parse(localStorage.getItem(NK)||'null');if(v&&typeof v==='object')ST={on:v.on?1:0,step:Number.isInteger(v.step)&&v.step>=0&&v.step<=DONE?v.step:null}}catch(e){}
@@ -2278,7 +2309,7 @@ function render(){
   if(cur)selId=cur; // кнопки «скопировать» и отметка берут пункт отсюда, как в полном пульте
   box.innerHTML=progress()+(view?moreHTML(view):ST.step<DONE?stepHTML(ST.step):doneHTML());
   const c=box.querySelector('.ncard');c.classList.remove('dense');if(c.scrollHeight>c.clientHeight+1)c.classList.add('dense');
-  joy(box.querySelector('.nclaude'))}
+  joy(box.querySelector('.nclaude'));plStart()}
 // Claude — тот же пиксельный спрайт, что бегает по пульту (claudes.js), в родных оранжевых цветах, без перекраски (v3: Алексей, 13.11 21:22 — «вернуть оранжевого обычного Клода, где он радуется»).
 // Рисуется по клеткам: 18 × 10 клеток, U пикселей на клетку, сверху запас на прыжок.
 const CW=18,CH=10;
@@ -2313,6 +2344,7 @@ function apply(on,saveIt){ST.on=on?1:0;if(saveIt)save();
   if(on){if(mode!=='cursor')setMode('cursor');if(!$('#memesPage').hidden)memes(false);if(TV.k)tvClose();if(window.__tour&&__tour.step>=0)__tour.end();hvClear();gMenu(false);view=null;render();
     // тур для полного пульта мог всплыть сам в первую секунду — в режиме новичка его нет
     setTimeout(()=>{if(ST.on&&window.__tour&&__tour.step>=0)__tour.end()},1000)}
+  else plStop();
   document.body.classList.toggle('nov',!!on);
   btn.innerHTML=on?'<b>←</b>ПОЛНЫЙ ПУЛЬТ':'<canvas class="novc" aria-hidden="true"></canvas><i class="novhey" aria-hidden="true">Эй, эй!</i>Режим новичка';
   btn.classList.toggle('novfull',!on);btn.setAttribute('aria-pressed',!!on);btn.title=on?'Вернуть полный пульт':'Режим новичка';hey()}
